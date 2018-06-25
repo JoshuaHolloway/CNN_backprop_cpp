@@ -23,6 +23,10 @@ using std::string;
 #include <thread>
 //-----------------------------------------------------------------
 //-----------------------------------------------------------------
+using framework::Matrix;
+using framework::FeatureMap;
+using framework::Filter;
+//-----------------------------------------------------------------
 template <typename T>
 Matrix<T> conv(const Matrix<T>& x, const Matrix<T>& h)
 {

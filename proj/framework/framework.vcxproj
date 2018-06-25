@@ -135,7 +135,6 @@
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\helper.h" />
     <ClInclude Include="src\Matrix.h" />
-    <ClInclude Include="src\Tensor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\framework.cpp" />

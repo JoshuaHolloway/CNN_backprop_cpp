@@ -5,6 +5,9 @@ using std::array;
 //-------------------------------------------------------------------
 void do_main()
 {
+	using framework::FeatureMap;
+	using framework::Filter;
+	using framework::Matrix;
 
 	static constexpr size_t examples = 1e5; // Number of examples
 	static constexpr size_t rows = 28, cols = 28;
