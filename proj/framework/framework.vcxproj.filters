@@ -15,24 +15,27 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FeatureMap.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\framework.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Filter.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Filter.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="helper.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\FeatureMap.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Matrix.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\helper.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tensor.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="src\Matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Tensor.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\framework.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,9 +1,11 @@
+#include "framework.h"
 #include "helper.h"
 #include <array>
 using std::array;
 //-------------------------------------------------------------------
 void do_main()
 {
+
 	static constexpr size_t examples = 1e5; // Number of examples
 	static constexpr size_t rows = 28, cols = 28;
 	static constexpr size_t features = rows * cols; // Number of features
