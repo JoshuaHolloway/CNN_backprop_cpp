@@ -64,7 +64,7 @@ void do_main()
 	//// Weights:
 	Filter<double> W1(2, 1, 3, 3);		W1.ones();
 	Matrix<double> W3(4, 8);					W3.ones();
-	Matrix<double> W4(4, 4);					W4.ones();
+	Matrix<double> W4(4, 4);					W4.ones(); // Two outpus
 
 	//// Layer 1: Conv + ReLu
 	//FeatureMap<float> Z1 = conv(X, W1);

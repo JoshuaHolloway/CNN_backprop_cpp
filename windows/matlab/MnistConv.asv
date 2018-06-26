@@ -30,6 +30,10 @@ for batch = 1:length(blist)
     x  = X(:, :, k);               % Input,           28x28
     y1 = Conv(x, W1);              % Convolution,  20x20x20
     
+    for jjj = 1:bsize
+        figure(1), imshow(y1(:, :, jjj), []);
+        pause
+    end
     
     y2 = ReLU(y1);                 %
     
@@ -61,15 +65,15 @@ for batch = 1:length(blist)
     % dA = d_loss / da
     % dZ = d_loss / dz
     %    = (d_loss / da) * (da / dz)
-    %    =  dZ           * g_prime(Z)
+    %    =  dZ           * (dA / dZ)
     % dW = dZ * X
 
     
     % Logistic Regression:
     % One-layer neural-network
-    % Activation: sigmoid: A = g(Z)
-    % Loss: Cross-entropy: L(A,Y)
-    % Cost: Sum of losses: J(W,b) = 1/M * sum(L(A,Y), 1, M)
+    % Activation: sigmoid: A =sigma(Z)
+    % Loss: Cross-entropy: L()J(W,b)
+    % Cost:
     
     
     % e = dA_L
@@ -78,7 +82,6 @@ for batch = 1:length(blist)
     delta  = dA2;
     
     g_prime_2 = (y5 > 0)
-    pause
     
     delta5 =  .* e5;
     

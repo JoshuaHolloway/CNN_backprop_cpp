@@ -396,3 +396,6 @@ FeatureMap<T> softmax(FeatureMap<T> Z)
 
 	return A;
 }
+//---------------------------------------------------
+//template <typename T>
+//FeatureMap<T> g_prime() 
