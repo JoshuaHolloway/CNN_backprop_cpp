@@ -31,16 +31,17 @@ public:
 		//free(ep);
 		engEvalString(ep, "close all;");
 	}
-	void command(const char* str)
+	void command(string str)
 	{
-		engEvalString(ep, str);
+		engEvalString(ep, str.c_str());
 	}
 
-	void linearize(const cv::Mat& mat_in, double* arr_out, const size_t M, const size_t N)
+	template <typename T>
+	void linearize(const cv::Mat& mat_in, T* arr_out, const size_t M, const size_t N)
 	{ // Swap from row-major to col-major
 		for (int row = 0; row < M; row++)
 			for (int col = 0; col < N; col++)
-				arr_out[col * M + row] = static_cast<double>(mat_in.at<unsigned char>(row, col));
+				arr_out[col * M + row] = mat_in.at<T>(row, col);
 	}
 
 	template <typename T>
@@ -56,7 +57,8 @@ public:
 	void passImageIntoMatlab(const cv::Mat& img)
 	{
 		// Convert the Mat object into a double array
-		double* linImgArrDouble = (double*)malloc(sizeof(double) * img.rows * img.cols);
+		//double* linImgArrDouble = (double*)malloc(sizeof(double) * img.rows * img.cols);
+		double* linImgArrDouble = new double[img.rows * img.cols];
 		linearize(img, linImgArrDouble, img.rows, img.cols);
 
 		// Copy image data into an mxArray inside C++ environment
@@ -111,50 +113,49 @@ public:
 	}
 };
 //=============================================================================
+string ExePath() {
+	char buffer[MAX_PATH];
+	GetModuleFileName(NULL, buffer, MAX_PATH);
+	const auto pos = string(buffer).find_last_of("\\/");
+	return string(buffer).substr(0, pos);
+}
+//=============================================================================
 void do_main()
 {
-	//// Instantiat matlab engine object
-	//matlabClass matlabObj;
+	// Instantiat matlab engine object
+	matlabClass matlabObj;
 
-	//// Change to active directory 
-	//matlabObj.command("cd ");
-	//// Read and display image:																																																																
-	//// Clear command window
-	//matlabObj.command("clc, clear, close all;");
+	// Change to active directory 
+	matlabObj.command("desktop");
+	string current_path = "cd " + ExePath();
+	matlabObj.command(current_path); // Move to current directory of generated .exe
+	matlabObj.command("cd ../../../matlab"); // Move to location of .m files
 
-	//// Read image into environment as a cv::Mat object
-	////cv::Mat img = cv::imread("C:/Users/josh/source/repos/OpenCV_MATLAB_engine/OpenCV_MATLAB_engine/OpenCV_MATLAB_engine/img.png", CV_LOAD_IMAGE_GRAYSCALE);
-	////cv::Mat img(512,512, CV_32FC1);
-	//cv::Mat img = cv::imread("img.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	//cv::imshow("OpenCV", img);
-
-	///// C++ -> MATLAB
-	//// Send image data to MATLAB workspace
-	//matlabObj.passImageIntoMatlab(img);
-
-	///// MATLAB -> C++
-	//// Read audio data from MATLAB into C++ workspace
-	////matlabObj.getAudioFromMatlab();
-
-	///// MATLAB -> C++
-	//// Demonstrate how to pass a value from MATLAB into C++ workspace
-	//matlabObj.returnScalarFromMatlab();
-
-	///// MATLAB -> C++
-	//// Demonstrate how to pass a vector from MATLAB into C++ workspace
-	//matlabObj.returnVectorFromMatlab();
-
-	///// MATLAB -> C++
-	//// Demonstrate how to pass a mat from MATLAB into C++ workspace
-	//matlabObj.returnMatrixFromMatlab();
-
-	//// Close program and exit open windows
-	//cv::waitKey(0); // Wait on key-press from user
+	// Read and display image:																																																																
+	// Clear command window
+	matlabObj.command("clc, clear, close all;");
 
 
 
 
+	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
+	// Step 2.a: Compute Z1 in MATLAB
+	// Step 2.b: Compute Z1 in C++
+	// Step 3: Send Z1 from C++ into MATLAB
+	//	c++ -> MATLAB
+	// Step 4: Copute L2-norm in MATLAB
+	cv::Mat test_mat(2, 2, CV_64FC1);
 
+	test_mat.at<double>(0, 0) = 0;
+	test_mat.at<double>(0, 1) = 1;
+	test_mat.at<double>(1, 0) = 2;
+	test_mat.at<double>(1, 1) = 3;
+
+	matlabObj.command("disp('hello');");
+	matlabObj.command("josh()");
+	matlabObj.passImageIntoMatlab(test_mat);
+
+	getchar();
 
 
 

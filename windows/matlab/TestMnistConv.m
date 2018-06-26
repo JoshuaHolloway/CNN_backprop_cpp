@@ -1,8 +1,8 @@
 clear all
 
-Images = loadMNISTImages('./MNIST/t10k-images.idx3-ubyte');
+Images = loadMNISTImages('t10k-images.idx3-ubyte');
 Images = reshape(Images, 28, 28, []);
-Labels = loadMNISTLabels('./MNIST/t10k-labels.idx1-ubyte');
+Labels = loadMNISTLabels('t10k-labels.idx1-ubyte');
 Labels(Labels == 0) = 10;    % 0 --> 10
 
 rng(1);
