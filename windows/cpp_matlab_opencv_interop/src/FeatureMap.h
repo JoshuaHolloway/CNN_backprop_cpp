@@ -114,11 +114,25 @@ namespace framework
 				data[i] = static_cast<T>(i);
 		}
 
+		// non-mutator
+		FeatureMap<T> transpose()
+		{
+			FeatureMap<T> transposed(dim1, dim2, dim3);
+
+			// Transpose each channel
+			for (int i = 0; i < dim1; ++i) // channels
+				for (int j = 0; j < dim2; ++j) // rows
+					for (int k = 0; k < dim3; ++k) // cols
+						transposed.data[i * dim3 * dim2 + j * dim3 + k] = data[i * dim3 * dim2 + k * dim3 + j];
+
+			return transposed;
+		}
+
 	public:
 		size_t channels{ 0 };
 		size_t rows{ 0 };
 		size_t cols{ 0 };
-	private:
+	//private:
 		size_t dim1{ 0 };
 		size_t dim2{ 0 };
 		size_t dim3{ 0 };

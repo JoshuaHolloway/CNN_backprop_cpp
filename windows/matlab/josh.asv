@@ -19,9 +19,6 @@ Wo = ones(4,4);
 
 
 
-
-
-
 %y2 = ReLU(y1);                 %
 %y3 = Pool(y2);                 % Pooling,      10x10x20
 %y4 = reshape(y3, [], 1);       %

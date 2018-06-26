@@ -69,7 +69,21 @@ public:
 		// Put variable into MATLAB workstpace
 		engPutVariable(ep, "img_from_OpenCV", mx_Arr);
 		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
+		delete[] linImgArrDouble;
 	}
+
+	void passArrIntoMatlab(const double* data, const int M, const int N)
+	{
+		// Copy image data into an mxArray inside C++ environment
+		mx_Arr = mxCreateDoubleMatrix(M, N, mxREAL);
+		memcpy(mxGetPr(mx_Arr), data, M * N * sizeof(double));
+
+		/// C++ -> MATLAB
+		// Put variable into MATLAB workstpace
+		engPutVariable(ep, "data_from_cpp", mx_Arr);
+		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
+	}
+
 	void getAudioFromMatlab()
 	{
 		// Read in audio file and play sound:
@@ -131,34 +145,13 @@ void do_main()
 	matlabObj.command(current_path); // Move to current directory of generated .exe
 	matlabObj.command("cd ../../../matlab"); // Move to location of .m files
 
-	// Read and display image:																																																																
+	// Read and display image:																																						
 	// Clear command window
 	matlabObj.command("clc, clear, close all;");
 
 
 
-
-	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
-	// Step 2.a: Compute Z1 in MATLAB
-	// Step 2.b: Compute Z1 in C++
-	// Step 3: Send Z1 from C++ into MATLAB
-	//	c++ -> MATLAB
-	// Step 4: Copute L2-norm in MATLAB
-	cv::Mat test_mat(2, 2, CV_64FC1);
-
-	test_mat.at<double>(0, 0) = 0;
-	test_mat.at<double>(0, 1) = 1;
-	test_mat.at<double>(1, 0) = 2;
-	test_mat.at<double>(1, 1) = 3;
-
-	matlabObj.command("disp('hello');");
-	matlabObj.command("josh()");
-	matlabObj.passImageIntoMatlab(test_mat);
-
-	getchar();
-
-
-
+	// CNN stuffs
 	using framework::FeatureMap;
 	using framework::Filter;
 	using framework::Matrix;
@@ -168,7 +161,6 @@ void do_main()
 	static constexpr size_t features = rows * cols; // Number of features
 	static constexpr size_t layers = 3; // Number of layers in network
 	static constexpr array<size_t, layers> neurons = { features + 1, 4, 1 }; // Number of neurons in each layer (input has features+bias)
-
 
 	// Layer: 0          1            2       
 	//      image     conv+relu      max            vec       fc+relu 
@@ -181,38 +173,64 @@ void do_main()
 	//      1x4x4 -> 2x4x4 -> 2x2x2 -> 8x1 ->  4x1  ->  4x1
 	//          2x1x3x3    2x2             4x8      4x4
 
-
 	// Syntethic image
-	FeatureMap<float> X(1, 4, 4);   X.count();
+	FeatureMap<double> X(1, 4, 4);   X.count();
 	cout << "\nX: " << X.channels << "x" << X.rows << "x" << X.cols << " = \n";
 
 
-	// Weights:
-	Filter<float> W1(2, 1, 3, 3);		W1.ones();
-	Matrix<float> W3(4, 8);					W3.ones();
-	Matrix<float> Wo(4, 4);					Wo.ones();
-
-	// Layer 1: Conv + ReLu
-	FeatureMap<float> Z1 = conv(X, W1);
-	FeatureMap<float> A1 = relu(Z1);
-
-	// Layer 2: Max-pool + vec
-	FeatureMap<float> Z2 = max_pool(A1);
-	Matrix<float> A2(8, 1);
-	vec(A2, Z2);
-
-	// Layer 3: FC + ReLu
-	Matrix<float> Z3 = mult(W3, A2);
-	Matrix<float> A3 = relu(Z3);
-
-	// Layer 4: FC + Soft-max
-	Matrix<float> Zo = mult(Wo, A3);
-	Matrix<float> Ao = softmax(Zo);
 
 
-	FeatureMap<float> Z1_valid = conv_valid(X, W1);
-	Z1_valid.print();
+
+
+
+
+
+
+	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
+	// Step 2.a: Compute Z1 in MATLAB
+	// Step 2.b: Compute Z1 in C++
+	// Step 3: Send Z1 from C++ into MATLAB
+	//	c++ -> MATLAB
+	// Step 4: Compute L2-norm in MATLAB
+
+	// 2D-data in 1d array
+	matlabObj.passArrIntoMatlab(X.transpose().data, X.rows, X.cols);
 	getchar();
+
+
+
+
+
+
+
+
+
+
+	//// Weights:
+	//Filter<float> W1(2, 1, 3, 3);		W1.ones();
+	//Matrix<float> W3(4, 8);					W3.ones();
+	//Matrix<float> Wo(4, 4);					Wo.ones();
+
+	//// Layer 1: Conv + ReLu
+	//FeatureMap<float> Z1 = conv(X, W1);
+	//FeatureMap<float> A1 = relu(Z1);
+
+	//// Layer 2: Max-pool + vec
+	//FeatureMap<float> Z2 = max_pool(A1);
+	//Matrix<float> A2(8, 1);
+	//vec(A2, Z2);
+
+	//// Layer 3: FC + ReLu
+	//Matrix<float> Z3 = mult(W3, A2);
+	//Matrix<float> A3 = relu(Z3);
+
+	//// Layer 4: FC + Soft-max
+	//Matrix<float> Zo = mult(Wo, A3);
+	//Matrix<float> Ao = softmax(Zo);
+
+	//FeatureMap<float> Z1_valid = conv_valid(X, W1);
+	//Z1_valid.print();
+	//getchar();
 }
 
 //---------------------------------------------------------------------
