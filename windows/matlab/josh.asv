@@ -16,6 +16,16 @@ Wo = ones(4,4);
 [fm_out] = Conv_josh(x, W1)
 [fm_out] = Conv(x, W1)
 
+% Frobenius norm
+if size(fm_out,1) ~= size(data_from_cpp,1) ... 
+        | size(fm_out,2) ~= size(data_from_cpp,1) ... 
+        | size(fm_out,3) ~= size(data_from_cpp,3)
+    disp('error')
+end
+
+for i = 1:
+error = norm((fm_out - data_from_cpp),'fro')
+
 
 
 

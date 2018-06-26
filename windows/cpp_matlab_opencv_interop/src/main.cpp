@@ -105,7 +105,6 @@ public:
 		/// C++ -> MATLAB
 		// Put variable into MATLAB workstpace
 		engPutVariable(ep, "data_from_cpp", mx_Arr);
-		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
 	}
 
 
@@ -115,14 +114,12 @@ public:
 		engEvalString(ep, "[y,Fs] = audioread('handel.wav');");
 		engEvalString(ep, "sound(y,Fs);");
 	}
-	void returnScalarFromMatlab()
+	void return_scalar_from_matlab(string variable)
 	{
-		command("matlabVal=42;");
-
 		// Grab value from workspace
-		mxArray *cppValmxArray = engGetVariable(ep, "matlabVal");															// Pointer to MATLAB variable 
+		mxArray *cppValmxArray = engGetVariable(ep, variable.c_str());															// Pointer to MATLAB variable 
 		const double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
-		std::cout << "Value passed from MATLAB into C++ = " << *cppValDblPtr << std::endl << std::endl;
+		std::cout << variable << " = " << *cppValDblPtr << std::endl << std::endl;
 	}
 	void returnVectorFromMatlab()
 	{
@@ -173,9 +170,7 @@ void do_main()
 	// Read and display image:																																						
 	// Clear command window
 	matlabObj.command("clc, clear, close all;");
-
-
-
+	
 	// CNN stuffs
 	using framework::FeatureMap;
 	using framework::Filter;
@@ -202,15 +197,6 @@ void do_main()
 	FeatureMap<double> X(1, 4, 4);   X.count();
 	cout << "\nX: " << X.channels << "x" << X.rows << "x" << X.cols << " = \n";
 
-
-
-
-
-
-
-
-
-
 	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
 	// Step 2.a: Compute Z1 in MATLAB
 	// Step 2.b: Compute Z1 in C++
@@ -218,21 +204,8 @@ void do_main()
 	//	c++ -> MATLAB
 	// Step 4: Compute L2-norm in MATLAB
 
-	// 2D-data in 1d array
-	//matlabObj.passArrIntoMatlab(X.transpose().data, X.rows, X.cols);
-	//getchar();
-
-	// 3D-data in 1d array
-	FeatureMap<double> X3(2, 4, 4);				X3.count();
-	matlabObj.pass_3D_into_matlab(X3.transpose().data, X3.channels, X3.rows, X3.cols);
-	cout << "X3 = \n";
-	X3.print();
-	getchar();
-
-
-
 	//// Weights:
-	//Filter<float> W1(2, 1, 3, 3);		W1.ones();
+	Filter<double> W1(2, 1, 3, 3);		W1.ones();
 	//Matrix<float> W3(4, 8);					W3.ones();
 	//Matrix<float> Wo(4, 4);					Wo.ones();
 
@@ -253,9 +226,25 @@ void do_main()
 	//Matrix<float> Zo = mult(Wo, A3);
 	//Matrix<float> Ao = softmax(Zo);
 
-	//FeatureMap<float> Z1_valid = conv_valid(X, W1);
-	//Z1_valid.print();
-	//getchar();
+	FeatureMap<double> Z1_valid = conv_valid(X, W1);
+	Z1_valid.print();
+
+	// TODO - address the error in this function
+	// 3D-data in 1d array
+	FeatureMap<double> Z1_valid_transpse = Z1_valid.transpose();
+	matlabObj.pass_3D_into_matlab(Z1_valid_transpse.data, Z1_valid.channels, Z1_valid.rows, Z1_valid.cols);
+
+	// Run the script with the synthetic data
+
+/*	matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
+	matlabObj.command("W1 = ones(3, 3, 2)");
+	matlabObj.command("fm_out = Conv(x, W1)")*/;
+	
+
+	matlabObj.command("josh()");
+	matlabObj.return_scalar_from_matlab("error");
+
+	getchar();
 }
 
 //---------------------------------------------------------------------

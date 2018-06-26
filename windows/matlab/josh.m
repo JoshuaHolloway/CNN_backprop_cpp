@@ -16,8 +16,23 @@ Wo = ones(4,4);
 [fm_out] = Conv_josh(x, W1)
 [fm_out] = Conv(x, W1)
 
+% Frobenius norm
+if size(fm_out,1) ~= size(data_from_cpp,1) ... 
+        | size(fm_out,2) ~= size(data_from_cpp,2) ... 
+        | size(fm_out,3) ~= size(data_from_cpp,3)
+    disp('error')
+end
 
-
+% Compute Frobenius-norm
+sum = 0;
+for i = 1:size(fm_out,1)
+    for j = 1:size(fm_out,2)
+        for k = 1:size(fm_out,3)
+            sum = sum + (fm_out(i,j,k) - data_from_cpp(i,j,k)^2);
+        end
+    end
+end
+error = sqrt(sum)
 
 
 

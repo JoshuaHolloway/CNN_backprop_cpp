@@ -14,6 +14,6 @@ D = Labels(1:8000);
 
 k = 1
 x  = X(:, :, k);               % Input,           28x28
-Z1 = Conv(x, W1);              % Convolution,  20x20x20
+Z1 = Conv(x, W1)              % Convolution,  20x20x20
 
 save('MnistConv.mat');
