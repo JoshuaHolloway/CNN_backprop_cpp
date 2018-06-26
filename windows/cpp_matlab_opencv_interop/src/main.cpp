@@ -113,43 +113,43 @@ public:
 //=============================================================================
 void do_main()
 {
-	// Instantiat matlab engine object
-	matlabClass matlabObj;
+	//// Instantiat matlab engine object
+	//matlabClass matlabObj;
 
-	// Change to active directory 
-	matlabObj.command("cd ");
-	// Read and display image:																																																																
-	// Clear command window
-	matlabObj.command("clc, clear, close all;");
+	//// Change to active directory 
+	//matlabObj.command("cd ");
+	//// Read and display image:																																																																
+	//// Clear command window
+	//matlabObj.command("clc, clear, close all;");
 
-	// Read image into environment as a cv::Mat object
-	//cv::Mat img = cv::imread("C:/Users/josh/source/repos/OpenCV_MATLAB_engine/OpenCV_MATLAB_engine/OpenCV_MATLAB_engine/img.png", CV_LOAD_IMAGE_GRAYSCALE);
-	//cv::Mat img(512,512, CV_32FC1);
-	cv::Mat img = cv::imread("img.jpg", CV_LOAD_IMAGE_GRAYSCALE);
-	cv::imshow("OpenCV", img);
+	//// Read image into environment as a cv::Mat object
+	////cv::Mat img = cv::imread("C:/Users/josh/source/repos/OpenCV_MATLAB_engine/OpenCV_MATLAB_engine/OpenCV_MATLAB_engine/img.png", CV_LOAD_IMAGE_GRAYSCALE);
+	////cv::Mat img(512,512, CV_32FC1);
+	//cv::Mat img = cv::imread("img.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+	//cv::imshow("OpenCV", img);
 
-	/// C++ -> MATLAB
-	// Send image data to MATLAB workspace
-	matlabObj.passImageIntoMatlab(img);
+	///// C++ -> MATLAB
+	//// Send image data to MATLAB workspace
+	//matlabObj.passImageIntoMatlab(img);
 
-	/// MATLAB -> C++
-	// Read audio data from MATLAB into C++ workspace
-	//matlabObj.getAudioFromMatlab();
+	///// MATLAB -> C++
+	//// Read audio data from MATLAB into C++ workspace
+	////matlabObj.getAudioFromMatlab();
 
-	/// MATLAB -> C++
-	// Demonstrate how to pass a value from MATLAB into C++ workspace
-	matlabObj.returnScalarFromMatlab();
+	///// MATLAB -> C++
+	//// Demonstrate how to pass a value from MATLAB into C++ workspace
+	//matlabObj.returnScalarFromMatlab();
 
-	/// MATLAB -> C++
-	// Demonstrate how to pass a vector from MATLAB into C++ workspace
-	matlabObj.returnVectorFromMatlab();
+	///// MATLAB -> C++
+	//// Demonstrate how to pass a vector from MATLAB into C++ workspace
+	//matlabObj.returnVectorFromMatlab();
 
-	/// MATLAB -> C++
-	// Demonstrate how to pass a mat from MATLAB into C++ workspace
-	matlabObj.returnMatrixFromMatlab();
+	///// MATLAB -> C++
+	//// Demonstrate how to pass a mat from MATLAB into C++ workspace
+	//matlabObj.returnMatrixFromMatlab();
 
-	// Close program and exit open windows
-	cv::waitKey(0); // Wait on key-press from user
+	//// Close program and exit open windows
+	//cv::waitKey(0); // Wait on key-press from user
 
 
 
@@ -184,7 +184,7 @@ void do_main()
 	// Syntethic image
 	FeatureMap<float> X(1, 4, 4);   X.count();
 	cout << "\nX: " << X.channels << "x" << X.rows << "x" << X.cols << " = \n";
-	X.print();
+
 
 	// Weights:
 	Filter<float> W1(2, 1, 3, 3);		W1.ones();
@@ -207,6 +207,11 @@ void do_main()
 	// Layer 4: FC + Soft-max
 	Matrix<float> Zo = mult(Wo, A3);
 	Matrix<float> Ao = softmax(Zo);
+
+
+	FeatureMap<float> Z1_valid = conv_valid(X, W1);
+	Z1_valid.print();
+	getchar();
 }
 
 //---------------------------------------------------------------------

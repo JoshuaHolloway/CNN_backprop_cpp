@@ -133,6 +133,50 @@ FeatureMap<T> conv(FeatureMap<T>& x, Filter<T>& h)
 }
 //-------------------------------------------------------------------------
 template <typename T>
+FeatureMap<T> conv_valid(FeatureMap<T>& x, Filter<T>& h)
+{
+	const size_t y_rows = x.rows - h.rows + 1;
+	const size_t y_cols = x.cols - h.cols + 1;
+
+
+	// 'same' 2D conv with 3D feature maps with implicit matrix slice addition
+	// Zero-padding is also implicit
+	//
+	// Input: One 3D feature map and one 4D tensor (set of filters)
+	// Output: One 3D feature map
+	FeatureMap<T> y(h.filters, y_rows, y_cols);
+	for (int idq = 0; idq < h.filters; ++idq) // out_channels
+	{
+		for (int idy = h.rows/2; idy < x.rows - h.rows/2; ++idy) // out_rows
+		{
+			for (int idx = h.cols/2; idx < x.cols - h.cols/2; ++idx) // out_cols
+			{
+				float Pvalue = 0.0f;
+				for (int idz = 0; idz < x.channels; ++idz) // input_channels
+				{
+					const size_t M_start_point = idy - h.rows / 2;
+					const size_t N_start_point = idx - h.cols / 2;
+					for (int i = 0; i < h.rows; ++i) // filter_rows
+					{
+						for (int j = 0; j < h.cols; ++j) // filter_cols
+						{
+							if ((M_start_point + i >= 0 && M_start_point + i < x.rows)
+								&& (N_start_point + j >= 0 && N_start_point + j < x.cols))
+							{
+								Pvalue += x.at(idz, M_start_point + i, N_start_point + j) * h.at(idq, idz, i, j);
+							}
+						}
+					}
+					y.set(idq, idy - 1, idx - 1, Pvalue);
+				}
+			}
+		}
+	}
+
+	return y;
+}
+//-------------------------------------------------------------------------
+template <typename T>
 FeatureMap<T> sigmoid(const FeatureMap<T>& Z)
 {
 	FeatureMap<T> A(Z.channels, Z.rows, Z.cols);
