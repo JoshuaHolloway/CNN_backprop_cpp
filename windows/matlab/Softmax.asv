@@ -1,9 +1,0 @@
-function y = Softmax(x)
-
-print(max)
-
-  max_val = max(x);
-  
-  ex = exp(x - max_val);
-  y  = ex / sum(ex);
-end

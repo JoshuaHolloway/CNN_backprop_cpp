@@ -25,7 +25,6 @@ end
 
 save('MnistConv.mat');
 
-
 % Test
 %
 X = Images(:, :, 8001:10000);
