@@ -54,6 +54,8 @@ public:
 		return arrOut;
 	}
 
+
+	// 2D cv::Mat passed from C++ into MATLAB
 	void passImageIntoMatlab(const cv::Mat& img)
 	{
 		// Convert the Mat object into a double array
@@ -72,6 +74,8 @@ public:
 		delete[] linImgArrDouble;
 	}
 
+
+	// 2D data stored in 1D array passed into 2D matrix in MATLAB
 	void passArrIntoMatlab(const double* data, const int M, const int N)
 	{
 		// Copy image data into an mxArray inside C++ environment
@@ -83,6 +87,27 @@ public:
 		engPutVariable(ep, "data_from_cpp", mx_Arr);
 		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
 	}
+
+
+	// 3D data stored in 1D array passed into 3D matrix in MATLAB
+	void pass_3D_into_matlab(const double* data, const int dim1, const int dim2, const int dim3)
+	{
+		//3rd dim is (i,:,:) in C++, yet (:,:,i) in MATLAB
+		//mxCreateNumericArray(mwSize ndim, const mwSize *dims,
+		//	mxClassID classid, mxComplexity ComplexFlag);
+		const mwSize ndim = 3;
+		const mwSize dims[ndim] = { dim2, dim3, dim1 };
+		mx_Arr = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
+
+		// Copy tensor data into an mxArray inside C++ environment
+		memcpy(mxGetPr(mx_Arr), data, dim1 * dim2 * dim3 * sizeof(double));
+
+		/// C++ -> MATLAB
+		// Put variable into MATLAB workstpace
+		engPutVariable(ep, "data_from_cpp", mx_Arr);
+		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
+	}
+
 
 	void getAudioFromMatlab()
 	{
@@ -194,15 +219,15 @@ void do_main()
 	// Step 4: Compute L2-norm in MATLAB
 
 	// 2D-data in 1d array
-	matlabObj.passArrIntoMatlab(X.transpose().data, X.rows, X.cols);
+	//matlabObj.passArrIntoMatlab(X.transpose().data, X.rows, X.cols);
+	//getchar();
+
+	// 3D-data in 1d array
+	FeatureMap<double> X3(2, 4, 4);				X3.count();
+	matlabObj.pass_3D_into_matlab(X3.transpose().data, X3.channels, X3.rows, X3.cols);
+	cout << "X3 = \n";
+	X3.print();
 	getchar();
-
-
-
-
-
-
-
 
 
 
