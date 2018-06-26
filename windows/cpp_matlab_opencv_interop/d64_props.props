@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)bin\intermediates\$(Platform)\$(Configuration)\</IntDir>
+    <ExecutablePath>$(SolutionDir)dependencies\matlab;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(SolutionDir)dependencies\matlab;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)dependencies\matlab\extern_\lib\win64\microsoft;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\matlab\include;$(SolutionDir)dependencies\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)dependencies\matlab;$(SolutionDir)dependencies\opencv\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmx.lib;libeng.lib;
+libmex.lib;
+libmat.lib;opencv_core341d.lib;
+opencv_highgui341d.lib;
+opencv_imgproc341d.lib;
+opencv_imgcodecs341d.lib;
+opencv_videoio341d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>
