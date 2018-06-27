@@ -64,7 +64,7 @@ void do_main()
 	//// Weights:
 	Filter<double> W1(2, 1, 3, 3);		W1.ones();
 	Matrix<double> W3(4, 8);					W3.ones();
-	//Matrix<float> Wo(4, 4);					Wo.ones();
+	Matrix<double> W4(4, 4);					W4.ones();
 
 	//// Layer 1: Conv + ReLu
 	//FeatureMap<float> Z1 = conv(X, W1);
@@ -87,20 +87,18 @@ void do_main()
 	FeatureMap<double> Z2 = ave_pool(A1);
 	FeatureMap<double> A2 = Z2.transpose().vectorize(); // Transpose each channel, then vectorize
 	FeatureMap<double> Z3 = mult(W3, A2);
-	Z3.print();
+	FeatureMap<double> A3 = relu(Z3);
+	FeatureMap<double> Z4 = mult(W4, A3);
+	FeatureMap<double> A4 = softmax(Z4);
+	A4.print();
 
 	//matlabObj.fm_2_matlab_tensor(Z2);
-	matlabObj.fm_2_matlab_vector(Z3);
-
-	
-
-
+	matlabObj.fm_2_matlab_vector(A4);
 
 	// Run the script with the synthetic data
 	//matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
 	//matlabObj.command("W1 = ones(3, 3, 2)");
 	//matlabObj.command("fm_out = Conv(x, W1)");
-	
 	getchar();
 }
 //---------------------------------------------------------------------

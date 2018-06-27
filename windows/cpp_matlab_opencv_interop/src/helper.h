@@ -331,7 +331,6 @@ FeatureMap<T> mult(Matrix<T> A, FeatureMap<T> B)
 		}
 	return C;
 }
-
 //---------------------------------------------------
 template <typename T>
 Matrix<T> softmax(const Matrix<T>& Z)
@@ -362,5 +361,38 @@ Matrix<T> softmax(const Matrix<T>& Z)
 		for (size_t n = 0; n != Z.cols; ++n)
 			A.set(m, n, exp(Z.at(m, n) - max_val) / sum);
 			
+	return A;
+}
+//---------------------------------------------------
+template <typename T>
+FeatureMap<T> softmax(FeatureMap<T> Z)
+{
+	//function y = Softmax(x)
+	//	ex = exp(x);
+	//	y = ex / sum(ex);
+	//end
+
+	// Find maximum value
+	auto max_val = static_cast<T>(0);
+	for (size_t m = 0; m != Z.rows; ++m)
+		for (size_t n = 0; n != Z.cols; ++n)
+		{
+			auto temp = Z.at(0, m, n);
+			if (temp > max_val)
+				max_val = temp;
+		}
+
+	// reduce
+	T sum = static_cast<T>(0);
+	for (size_t m = 0; m != Z.rows; ++m)
+		for (size_t n = 0; n != Z.cols; ++n)
+			sum += exp(Z.at(0, m, n) - max_val);
+
+	// softmax
+	FeatureMap<T> A(1, Z.rows, Z.cols);
+	for (size_t m = 0; m != Z.rows; ++m)
+		for (size_t n = 0; n != Z.cols; ++n)
+			A.set(0, m, n, exp(Z.at(0, m, n) - max_val) / sum);
+
 	return A;
 }

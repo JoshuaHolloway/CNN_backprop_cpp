@@ -140,9 +140,6 @@ public:
 		std::cout << "Vector passed from MATLAB into C++ = " <<
 			cppValDblPtrTran[0] << " " << cppValDblPtrTran[1] << " " <<
 			cppValDblPtrTran[2] << " " << cppValDblPtrTran[3] << std::endl << std::endl;
-
-		//mxArray *cppValMxArray = engGetVariable(ep, "matlabVal");
-		//mxArray* output = mxCreateNumericMatrix(mxGetM(matlabVal), mxGetN())
 	}
 
 	template <typename T>
