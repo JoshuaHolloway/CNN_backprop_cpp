@@ -246,21 +246,6 @@ Tensor<T> sigmoid(const Tensor <T>& Z)
 				A.set(l, m, n, 1.0f / (1 + exp(-Z.at(l, m, n))));
 	return A;
 }
-////-------------------------------------------------------------------------
-//template <typename T>
-//FeatureMap<T> relu(FeatureMap<T> Z)
-//{
-//	FeatureMap<T> A(Z.channels, Z.rows, Z.cols);
-//	for (size_t l = 0; l != Z.channels; ++l)
-//		for (size_t m = 0; m != Z.rows; ++m)
-//			for (size_t n = 0; n != Z.cols; ++n)
-//			{
-//				T z = Z.at(l, m, n);
-//				T max_val = max(0, z);
-//				A.set(l, m, n, max_val);
-//			}
-//	return A;
-//}
 //-------------------------------------------------------------------------
 template <typename T>
 Tensor<T> relu(Tensor<T> Z)
@@ -507,5 +492,35 @@ Tensor<T> softmax(Tensor<T> Z)
 	return A;
 }
 //---------------------------------------------------
-//template <typename T>
-//FeatureMap<T> g_prime() 
+template <typename T>
+Tensor<T> g_prime(Tensor<T> Z)
+{
+	// Derivative of ReLu
+	Tensor<T> A(1, Z.channels, Z.rows, Z.cols);
+	for (size_t l = 0; l != Z.channels; ++l)
+		for (size_t m = 0; m != Z.rows; ++m)
+			for (size_t n = 0; n != Z.cols; ++n)
+			{
+				//(condition) ? (if_true) : (if_false)
+				(Z.at(0, l, m, n) > 0) ? (A.set(0, l, m, n, 1)) : (A.set(0, l, m, n, 0));
+			}
+	return A;
+}
+//---------------------------------------------------
+template <typename T>
+Tensor<T> hadamard(Tensor<T> A, Tensor<T> B)
+{
+	assert(A.filters == 1 && B.filters == 1);
+	assert(A.channels == B.channels);
+	assert(A.rows == B.rows);
+	assert(A.cols == B.cols);
+	
+	Tensor<T> C(1, A.channels, A.rows, A.cols);
+
+	for (size_t l = 0; l < A.channels; ++l)
+		for (size_t m = 0; m < A.rows; ++m)
+			for (size_t n = 0; n < A.cols; ++n)
+				C.set(0, l, m, n, A.at(0, l, m, n) * B.at(0, l, m, n));
+
+	return C;
+}

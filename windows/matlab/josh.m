@@ -44,9 +44,12 @@ d(sub2ind(size(d), D(k), 1)) = 1
 % % Cross entropy: dZ2 = D - Y
 dZ_4  = d - A4;
 dA_3  = W4' * dZ_4;
+g_prime_3 = (A3 > 0);
+dZ_3 = g_prime_3 .* dA_3;
+
 
 % Test cpp with golden reference here in matlab
-[error] = froben(dA_3, data_from_cpp)
+[error] = froben(dZ_3, data_from_cpp)
 
 
 
