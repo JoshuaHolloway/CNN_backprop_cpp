@@ -83,7 +83,6 @@ public:
 		/// C++ -> MATLAB
 		// Put variable into MATLAB workstpace
 		engPutVariable(ep, "data_from_cpp", mx_Arr);
-		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
 	}
 
 	

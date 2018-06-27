@@ -12,7 +12,7 @@ x
 
 
 W1 = ones(3,3,N1)
-W2 = ones(4,8);
+W3 = ones(4,8);
 Wo = ones(4,4);
 
 % Replaced custom conv with built-in conv
@@ -21,9 +21,11 @@ Z1 = Conv(x, W1);
 A1 = ReLU(Z1);
 Z2 = Pool(A1);                 % ave-pool      10x10x20
 A2 = reshape(Z2, [], 1);       % vectorize (10x10x20)x1
+Z3 = W3 * A2;                    % ReLU,             2000
+
 
 % Test cpp with golden reference here in matlab
-[error] = froben(A2, data_from_cpp)
+[error] = froben(Z3, data_from_cpp)
 
 
 

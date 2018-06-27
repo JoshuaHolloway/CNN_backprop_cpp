@@ -306,6 +306,34 @@ Matrix<T> mult(const Matrix<T>& A, const Matrix<T>& B)
 }
 //---------------------------------------------------
 template <typename T>
+FeatureMap<T> mult(Matrix<T> A, FeatureMap<T> B)
+{
+	// Input: 
+	// B is 1 x N x 1  column-vector
+	// A is 1 x M x N  matrix
+	// Output:
+	// C is 1 x M x 1  column-vector
+
+
+
+	assert(A.cols == B.rows);
+	const size_t M = A.rows;
+	const size_t N = A.cols;
+		
+	FeatureMap<T> C(1, M, 1);
+	for (size_t n = 0; n < B.cols; ++n) // For vector B, this will run only once
+		for (size_t m = 0; m < A.rows; ++m)
+		{
+			auto sum = (T)0;
+			for (size_t k = 0; k < A.cols; ++k)
+				sum += A.at(m, k) * B.at(0, k, n);
+			C.set(0, m, n, sum);
+		}
+	return C;
+}
+
+//---------------------------------------------------
+template <typename T>
 Matrix<T> softmax(const Matrix<T>& Z)
 {
 	//function y = Softmax(x)
