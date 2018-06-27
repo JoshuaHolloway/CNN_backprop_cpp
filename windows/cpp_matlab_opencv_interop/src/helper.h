@@ -384,11 +384,7 @@ Tensor<T> mult_2D(Tensor<T> A, Tensor<T> B)
 		{
 			auto sum = (T)0;
 			for (size_t k = 0; k < A.cols; ++k)
-			{
 				sum += A.at(0, 0, m, k) * B.at(0, 0, k, n);
-				cout << "sum = " << sum << " ";
-			}
-				
 			C.set(0, 0, m, n, sum);
 		}
 	return C;

@@ -119,14 +119,27 @@ void do_main()
 	// dZ_3 = g_prime_3.*dA_3;
 	auto dZ_3 = hadamard(g_prime_3, dA_3);
 
-	cout << "dZ_3:\n";
-	dZ_3.print();
-	
+	//	dA_2 = W3' * dZ_3;       
+
+
+
+
+	cout << "dA_2:\n";
+	auto dA_2 = mult_2D(W3.transpose(), dZ_3);
+	dA_2.print();
+
+
+	//	e3 = reshape(dA_2, size(Z2)); // De-Vec => Matricize
+
+	cout << "e3:\n";
+	auto e3 = dA_2.tensorize_3D(Z2.channels, Z2.rows, Z2.cols);
+
+
 
 	// dA_2 = W3' * dZ_3;            % Pooling layer
 	// e3 = reshape(dA_2, size(Z2)); % De-Vec
 
-	matlabObj.tensor_2_matlab(dZ_3);
+	matlabObj.tensor_2_matlab(e3);
 	
 
 	// Run the script with the synthetic data

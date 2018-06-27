@@ -101,6 +101,11 @@ namespace framework
 			return data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l];
 		}
 
+		inline size_t lin_idx(size_t i, size_t j, size_t k, size_t l) //(filters, channel, row, col)
+		{
+			return (i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l;
+		}
+
 		void print()
 		{
 			for (int i = 0; i < filters; ++i)
@@ -182,14 +187,14 @@ namespace framework
 		// non-mutator
 		Tensor<T> transpose()
 		{
-			Tensor<T> transposed(dim1, dim2, dim3, dim4);
+			Tensor<T> transposed(dim1, dim2, dim4, dim3); // Tranpose (dim3 x dim4) sized matrices => output is (dim4 x dim3) sized matrices
 
 			// Transpose each channel
 			for (int i = 0; i < dim1; ++i) // channels
 				for (int j = 0; j < dim2; ++j) // rows
 					for (int k = 0; k < dim3; ++k) // cols
 						for (int l = 0; l < dim4; ++l)
-							transposed.data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l] = data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (l * dim4) + k];
+							transposed.set(i, j, l, k, at(i, j, k, l));			
 			return transposed;
 		}
 
@@ -200,6 +205,37 @@ namespace framework
 			for (int i = 0; i != length; ++i)
 				out.set(0, 0, i, 0, data[i]);
 			return out;
+		}
+
+		// non-multator
+		Tensor<T> matricize(size_t dim3, size_t dim4)
+		{
+			// Current tensor is dimensions: 1 x 1 x (dim3 x dim4) x 1
+			// New tensor is dimension: 1 x 1 x dim3 x dim4
+			Tensor<T> tensor_out(1, 1, dim3, dim4);
+			for (int k = 0; k < dim3; ++k) // Width of Feature Map
+				for (int l = 0; l < dim4; ++l)
+					tensor_out.set(0, 0, k, l, at(0, 0, k, l));
+			return tensor_out;
+		}
+
+		// non-multator
+		Tensor<T> tensorize_3D(size_t dim2, size_t dim3, size_t dim4)
+		{
+			// Current tensor is dimensions: 1 x 1 x (dim2 x dim3 x dim4) x 1
+			// New tensor is dimension: 1 x dim2 x dim3 x dim4
+			Tensor<T> tensor_out(1, dim2, dim3, dim4);
+			size_t count = 0;
+			for (int j = 0; j < dim2; ++j) // Width of Feature Map
+				for (int k = 0; k < dim3; ++k) // Width of Feature Map
+					for (int l = 0; l < dim4; ++l)
+					{
+						//cout << "at(0," << j << ", " << k << ", " << l << ") = " << at(0, j, k, l) << "   data[" << count << "] = " << data[count] << "\n";
+						tensor_out.set(0, j, k, l, data[count]);
+						count++;
+					}
+						
+			return tensor_out;
 		}
 
 

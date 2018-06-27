@@ -47,9 +47,13 @@ dA_3  = W4' * dZ_4;
 g_prime_3 = (A3 > 0);
 dZ_3 = g_prime_3 .* dA_3;
 
+% Layer 2
+dA_2     = W3' * dZ_3;            % Pooling layer
+e3     = reshape(dA_2, size(Z2));
+
 
 % Test cpp with golden reference here in matlab
-[error] = froben(dZ_3, data_from_cpp)
+[error] = froben(e3, data_from_cpp)
 
 
 

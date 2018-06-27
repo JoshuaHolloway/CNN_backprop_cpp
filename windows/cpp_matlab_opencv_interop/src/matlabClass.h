@@ -107,24 +107,7 @@ public:
 	}
 
 
-	// 4D data stored in 1D array passed into 3D matrix in MATLAB
-	// NOTE: this will always be a 3D feature map stored as a s 4D tensor
-	void pass_4D_into_matlab(const double* data, const int dim1, const int dim2, const int dim3, const int dim4)
-	{
-		//3rd dim is (i,:,:) in C++, yet (:,:,i) in MATLAB
-		//mxCreateNumericArray(mwSize ndim, const mwSize *dims,
-		//	mxClassID classid, mxComplexity ComplexFlag);
-		const mwSize ndim = 3;
-		const mwSize dims[ndim] = { dim3, dim4, dim2 }; // Ignore the 1st dimension (see note above)
-		mx_Arr = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
 
-		// Copy tensor data into an mxArray inside C++ environment
-		memcpy(mxGetPr(mx_Arr), data, dim1 * dim2 * dim3 * sizeof(double));
-
-		/// C++ -> MATLAB
-		// Put variable into MATLAB workstpace
-		engPutVariable(ep, "data_from_cpp", mx_Arr);
-	}
 
 	
 
@@ -179,8 +162,32 @@ public:
 	//}
 
 
+	// 4D data stored in 1D array passed into 3D matrix in MATLAB
+	// NOTE: this will always be a 3D feature map stored as a s 4D tensor
+	void pass_4D_into_matlab(const double* data, const int dim1, const int dim2, const int dim3, const int dim4)
+	{
+		//3rd dim is (i,:,:) in C++, yet (:,:,i) in MATLAB
+		//           (2,3,4)             (3,4,2)
+		//mxCreateNumericArray(mwSize ndim, const mwSize *dims,
+		//	mxClassID classid, mxComplexity ComplexFlag);
+		const mwSize ndim = 3;
+		const mwSize dims[ndim] = { dim3, dim4, dim2 }; // Ignore the 1st dimension (see note above)
+		mx_Arr = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
+
+		// Copy tensor data into an mxArray inside C++ environment
+		memcpy(mxGetPr(mx_Arr), data, dim1 * dim2 * dim3 * dim4 * sizeof(double));
+
+		/// C++ -> MATLAB
+		// Put variable into MATLAB workstpace
+		engPutVariable(ep, "data_from_cpp", mx_Arr);
+	}
+	// - - - - - - - - - - - - - - - - - - - - - - - - - -
 	void tensor_2_matlab(framework::Tensor<double> tensor)
 	{
+
+		tensor.print();
+		tensor.print_dims();
+
 		// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
 		//pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
 		pass_4D_into_matlab(&tensor.transpose()[0], tensor.filters, tensor.channels, tensor.rows, tensor.cols);
