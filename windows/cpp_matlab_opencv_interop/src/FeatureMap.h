@@ -167,9 +167,19 @@ namespace framework
 				for (int j = 0; j < dim2; ++j) // rows
 					for (int k = 0; k < dim3; ++k) // cols
 						transposed.data[i * dim3 * dim2 + j * dim3 + k] = data[i * dim3 * dim2 + k * dim3 + j];
-
 			return transposed;
 		}
+
+		// non-mutator
+		FeatureMap<T> vectorize()
+		{
+			FeatureMap<T> out(1, dim1 * dim2 * dim3, 1); // Single-channel column-vector
+			for (int i = 0; i != length; ++i)
+				out.data[i] = data[i];
+			return out;
+		}
+
+
 
 	public:
 		size_t channels{ 0 };

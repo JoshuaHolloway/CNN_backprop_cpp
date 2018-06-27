@@ -122,6 +122,7 @@
     <ClInclude Include="src\FeatureMap.h" />
     <ClInclude Include="src\Filter.h" />
     <ClInclude Include="src\helper.h" />
+    <ClInclude Include="src\matlabClass.h" />
     <ClInclude Include="src\Matrix.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
