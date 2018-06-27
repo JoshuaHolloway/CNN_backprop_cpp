@@ -31,7 +31,7 @@ void do_main()
 	
 	// CNN stuffs
 	using framework::FeatureMap;
-	using framework::Filter;
+	using framework::Tensor;
 	using framework::Matrix;
 
 	static constexpr size_t examples = 1;
@@ -53,7 +53,7 @@ void do_main()
 	//          2x1x3x3    2x2             4x8      4x4
 
 	// Syntethic image
-	Filter<double> X(1, 1, row_features, col_features);   X.count();
+	Tensor<double> X(1, 1, row_features, col_features);   X.count();
 
 	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
 	// Step 2.a: Compute Z1 in MATLAB
@@ -63,9 +63,9 @@ void do_main()
 	// Step 4: Compute L2-norm in MATLAB
 
 	//// Weights:
-	Filter<double> W1(2, 1, 3, 3);		W1.ones();
-	Filter<double> W3(1, 1, neurons[3], neurons[2]);					W3.ones();
-	Filter<double> W4(1, 1, neurons[4], neurons[3]);					W4.ones(); // Two outpus
+	Tensor<double> W1(2, 1, 3, 3);		W1.ones();
+	Tensor<double> W3(1, 1, neurons[3], neurons[2]);					W3.ones();
+	Tensor<double> W4(1, 1, neurons[4], neurons[3]);					W4.ones(); // Two outpus
 
 	auto Z1_valid = conv_valid(X, W1);
 	auto A1 = relu(Z1_valid);
@@ -85,7 +85,7 @@ void do_main()
 	// One hot first example
 	//d = [1; 0; 0; 0]
 
-	Filter<double> d(1, 1, neurons[4], 1);
+	Tensor<double> d(1, 1, neurons[4], 1);
 	
 	d.set(0, 0, 0, 0, 1);
 	d.set(0, 0, 1, 0, 0);
@@ -109,7 +109,7 @@ void do_main()
 	// dA_2 = W3' * dZ_3;            % Pooling layer
 	// e3 = reshape(dA_2, size(Z2)); % De-Vec
 
-	matlabObj.tensor_2_matlab(A4);
+	matlabObj.tensor_2_matlab(dZ_4);
 	
 
 	// Run the script with the synthetic data

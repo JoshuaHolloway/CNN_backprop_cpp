@@ -1,7 +1,7 @@
 #pragma once
 #include "Matrix.h"
 #include "FeatureMap.h"
-#include "Filter.h"
+#include "Tensor.h"
 //-----------------------------------------------------------------
 // C++ stuff:
 #include <iostream> 
@@ -25,7 +25,7 @@ using std::string;
 //-----------------------------------------------------------------
 using framework::Matrix;
 using framework::FeatureMap;
-using framework::Filter;
+using framework::Tensor;
 //-----------------------------------------------------------------
 template <typename T>
 Matrix<T> conv(const Matrix<T>& x, const Matrix<T>& h)
@@ -94,7 +94,7 @@ FeatureMap<T> conv(const FeatureMap<T>& x, const FeatureMap<T>& h)
 }
 //-------------------------------------------------------------------------
 template <typename T>
-FeatureMap<T> conv(FeatureMap<T>& x, Filter<T>& h)
+FeatureMap<T> conv(FeatureMap<T>& x, Tensor<T>& h)
 {
 	// 'same' 2D conv with 3D feature maps with implicit matrix slice addition
 	// Zero-padding is also implicit
@@ -133,7 +133,7 @@ FeatureMap<T> conv(FeatureMap<T>& x, Filter<T>& h)
 }
 //-------------------------------------------------------------------------
 template <typename T>
-FeatureMap<T> conv_valid(FeatureMap<T>& x, Filter<T>& h)
+FeatureMap<T> conv_valid(FeatureMap<T>& x, Tensor<T>& h)
 {
 	const size_t y_rows = x.rows - h.rows + 1;
 	const size_t y_cols = x.cols - h.cols + 1;
@@ -177,7 +177,7 @@ FeatureMap<T> conv_valid(FeatureMap<T>& x, Filter<T>& h)
 }
 //-------------------------------------------------------------------------
 template <typename T>
-Filter<T> conv_valid(Filter<T>& x, Filter<T>& h)
+Tensor<T> conv_valid(Tensor<T>& x, Tensor<T>& h)
 {
 	const size_t y_rows = x.rows - h.rows + 1;
 	const size_t y_cols = x.cols - h.cols + 1;
@@ -189,7 +189,7 @@ Filter<T> conv_valid(Filter<T>& x, Filter<T>& h)
 	// Input: One 4D tensor and one 4D tensor
 	// Output: One 4D feature map with everything stored in the 2nd, 3rd, and 4th channels
 	//FeatureMap<T> y(h.filters, y_rows, y_cols);
-	Filter<T> y(1, h.filters, y_rows, y_cols);
+	Tensor<T> y(1, h.filters, y_rows, y_cols);
 
 	for (int idq = 0; idq < h.filters; ++idq) // out_channels
 	{
@@ -235,9 +235,9 @@ FeatureMap<T> sigmoid(const FeatureMap<T>& Z)
 }
 //-------------------------------------------------------------------------
 template <typename T>
-Filter<T> sigmoid(const Filter <T>& Z)
+Tensor<T> sigmoid(const Tensor <T>& Z)
 {
-	Filter<T> A(1, Z.channels, Z.rows, Z.cols);
+	Tensor<T> A(1, Z.channels, Z.rows, Z.cols);
 
 	// All feature-maps only use the 2nd, 3rd, and 4th dimensions of the tensor
 	for (size_t l = 0; l != Z.channels; ++l)	// dim-1
@@ -263,9 +263,9 @@ Filter<T> sigmoid(const Filter <T>& Z)
 //}
 //-------------------------------------------------------------------------
 template <typename T>
-Filter<T> relu(Filter<T> Z)
+Tensor<T> relu(Tensor<T> Z)
 {
-	Filter<T> A(1, Z.channels, Z.rows, Z.cols);
+	Tensor<T> A(1, Z.channels, Z.rows, Z.cols);
 	for (size_t l = 0; l != Z.channels; ++l)
 		for (size_t m = 0; m != Z.rows; ++m)
 			for (size_t n = 0; n != Z.cols; ++n)
@@ -349,14 +349,14 @@ FeatureMap<T> ave_pool(FeatureMap<T> x)
 }
 //-------------------------------------------------------
 template <typename T>
-Filter<T> ave_pool(Filter<T> x)
+Tensor<T> ave_pool(Tensor<T> x)
 {
 	const size_t H = x.rows;
 	const size_t W = x.cols;
 	const size_t M = x.channels;
 	const size_t K = 2; // downsampling factor
 
-	Filter<T> S(1, x.channels, H / K, W / K); // rows, cols, channels
+	Tensor<T> S(1, x.channels, H / K, W / K); // rows, cols, channels
 
 	for (int m = 0; m < M; ++m)  // channels
 	{
@@ -437,7 +437,7 @@ Filter<T> ave_pool(Filter<T> x)
 //}
 //---------------------------------------------------
 template <typename T>
-Filter<T> mult_2D(Filter<T> A, Filter<T> B)
+Tensor<T> mult_2D(Tensor<T> A, Tensor<T> B)
 {
 	// Input: 
 	// B is 1 x N x 1  column-vector
@@ -449,7 +449,7 @@ Filter<T> mult_2D(Filter<T> A, Filter<T> B)
 	const size_t M = A.rows;
 	const size_t N = A.cols;
 
-	Filter<T> C(1, 1, M, 1);
+	Tensor<T> C(1, 1, M, 1);
 	for (size_t n = 0; n < B.cols; ++n) // For vector B, this will run only once
 		for (size_t m = 0; m < A.rows; ++m)
 		{
@@ -527,7 +527,7 @@ FeatureMap<T> softmax(FeatureMap<T> Z)
 }
 //---------------------------------------------------
 template <typename T>
-Filter<T> softmax(Filter<T> Z)
+Tensor<T> softmax(Tensor<T> Z)
 {
 	//function y = Softmax(x)
 	//	ex = exp(x);
@@ -551,7 +551,7 @@ Filter<T> softmax(Filter<T> Z)
 			sum += exp(Z.at(0, 0, m, n) - max_val);
 
 	// softmax
-	Filter<T> A(1, 1, Z.rows, Z.cols);
+	Tensor<T> A(1, 1, Z.rows, Z.cols);
 	for (size_t m = 0; m != Z.rows; ++m)
 		for (size_t n = 0; n != Z.cols; ++n)
 			A.set(0, 0, m, n, exp(Z.at(0, 0, m, n) - max_val) / sum);

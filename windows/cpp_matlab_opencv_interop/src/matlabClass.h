@@ -6,10 +6,10 @@
 #include "engine.h"  // MATLAB Engine Header File required for building in Visual Studio 
 #include "mex.h"
 #include "FeatureMap.h"
-#include "Filter.h"
+#include "Tensor.h"
 using std::string;
 using framework::FeatureMap;
-//using framework::Filter;
+//using framework::Tensor;
 
 class matlabClass
 {
@@ -179,7 +179,7 @@ public:
 	//}
 
 
-	void tensor_2_matlab(framework::Filter<double> tensor)
+	void tensor_2_matlab(framework::Tensor<double> tensor)
 	{
 		// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
 		//pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
