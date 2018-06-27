@@ -105,18 +105,17 @@ namespace framework
 		{
 			for (int i = 0; i < filters; ++i)
 			{
-				cout << "\n ----------------- \n";
-				cout << "Volume " << i << " \n";
 				for (int j = 0; j < channels; ++j)
 				{
 					cout << "\n ----------------- \n";
-					cout << "Slice " << i << " \n";
+					cout << "Volume: " << i << ",  Slice: " << j << " \n";
 					for (int k = 0; k < rows; ++k)
 					{
 						for (int l = 0; l < cols; ++l)
 							cout << data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l] << " ";
 						cout << "\n";
 					}
+					cout << "\n";
 				}
 			}
 		}
@@ -133,6 +132,12 @@ namespace framework
 		{
 			for (int i = 0; i != length; ++i)
 				data[i] = static_cast<T>(1);
+		}
+
+		void ones_flipped()
+		{
+			for (int i = 0; i != length; ++i)
+				data[i] = static_cast<T>(pow(-1, i));
 		}
 
 		void zeros()

@@ -27,7 +27,10 @@ A2 = reshape(Z2, [], 1);       % vectorize (10x10x20)x1
 Z3 = W3 * A2;                    % ReLU,             2000
 A3 = ReLU(Z3);
 Z4 = W4*A3;                    % Softmax,          10x1
-Y_hat = Softmax(Z4); % Predictions
+A4 = Softmax(Z4); % Predictions
+
+%% Debug:
+A4 = [0; 0.75; 0; 0]
 
 % % DEBUG: 4-examples with labels {1,2}
 M = 2; % M examples
@@ -35,19 +38,15 @@ k = 2; % First example
 D = [1, 2]; % Labels from MNIST
 
 % One-hot encoding
-d = zeros(M, 1);
+d = zeros(N2, 1);
 d(sub2ind(size(d), D(k), 1)) = 1
 
 % % Cross entropy: dZ2 = D - Y
-% dA2  = d - Y_hat;
-% dZ2  = dA2;
-
-% % Set all non-zero values to 1
-% g_prime_2 = (Y_hat > 0)
-
+dZ_4  = d - A4;
+dA_3  = W4' * dZ_4;
 
 % Test cpp with golden reference here in matlab
-[error] = froben(Y_hat, data_from_cpp)
+[error] = froben(dA_3, data_from_cpp)
 
 
 

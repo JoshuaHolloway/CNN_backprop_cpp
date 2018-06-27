@@ -76,8 +76,19 @@ void do_main()
 	auto Z4 = mult_2D(W4, A3);
 	auto A4 = softmax(Z4);
 	
-	cout << "output of network = \n";
+	
+	// DEBUG:
+	A4.set(0, 0, 0, 0, 0);
+	A4.set(0, 0, 1, 0, 0.75);
+	A4.set(0, 0, 2, 0, 0);
+	A4.set(0, 0, 3, 0, 0);
+	
+	
 	A4.print();
+
+
+
+	
 
 	// Training examples:
 	//Y = [1, 2] out of neurons[4] = 4 outputs: {1,2,3,4}
@@ -92,16 +103,16 @@ void do_main()
 	d.set(0, 0, 2, 0, 0);
 	d.set(0, 0, 3, 0, 0);
 	
-	cout << "one-hot encoded = \n";
-	d.print();
-
-	A4.print_dims();
-	d.print_dims();
 	auto dZ_4 = d.sub(A4);
-	dZ_4.print();
+
 	
 	// dA_3 = W4' * dZ_4;             % Hidden(ReLU) layer
-	//auto dA_3 = mult(W4.transpose(), dZ_4);
+	auto W4T = W4.transpose();
+
+
+	auto dA_3 = mult_2D(W4T, dZ_4);
+	cout << "dA_3:\n";
+	dA_3.print();
 
 	// g_prime_3 = (A3 > 0);
 	// dZ_3 = g_prime_3.*dA_3;
@@ -109,7 +120,7 @@ void do_main()
 	// dA_2 = W3' * dZ_3;            % Pooling layer
 	// e3 = reshape(dA_2, size(Z2)); % De-Vec
 
-	matlabObj.tensor_2_matlab(dZ_4);
+	matlabObj.tensor_2_matlab(dA_3);
 	
 
 	// Run the script with the synthetic data

@@ -79,7 +79,6 @@ for batch = 1:length(blist)
   end 
   
   % Update weights
-  %
   dW1 = dW1 / bsize;
   dW3 = dW3 / bsize;
   dW4 = dW4 / bsize;
