@@ -210,7 +210,7 @@ FeatureMap<T> max_pool(FeatureMap<T> x)
 	const size_t K = 2;
 
 	// output downsampled feature map:
-	FeatureMap<T> y(x.rows / K, x.cols / K, x.channels); // rows, cols, channels
+	FeatureMap<T> y(x.channels, x.rows / K, x.cols / K); // rows, cols, channels
 	for (int i = 0; i < x.channels; ++i)
 	{
 		for (int j = 0; j < x.rows; j += K)
@@ -230,7 +230,7 @@ FeatureMap<T> max_pool(FeatureMap<T> x)
 						else
 						{
 							if (x.at(i, jj, kk) > max)
-								max = x.at(i, jj, kk);
+								max = x.at(i, jj, kk) + 1;
 						} // end if-else
 					}// end for over kk
 				} // end for over jj
@@ -240,6 +240,38 @@ FeatureMap<T> max_pool(FeatureMap<T> x)
 		} // end for over j
 	} // end for over i
 	return y;
+}
+//-------------------------------------------------------
+template <typename T>
+FeatureMap<T> ave_pool(FeatureMap<T> x)
+{
+	const size_t H = x.rows;
+	const size_t W = x.cols;
+	const size_t M = x.channels;
+	const size_t K = 2; // downsampling factor
+
+	FeatureMap<T> S(x.channels, H / K, W / K); // rows, cols, channels
+
+	for (int m = 0; m < M; ++m)  // channels
+	{
+		for (int h = 0; h < H / K; ++h) // rows
+		{
+			for (int w = 0; w < W / K; ++w)
+			{
+				auto temp = (T)0;
+				for (int p = 0; p < K; ++p)
+				{
+					for (int q = 0; q < K; ++q)
+					{
+						temp += x.at(m, K*h + p, K*w + q);
+					}
+				}
+				S.set(m, h, w, temp / T(K*K));
+			}
+		}
+	}
+
+	return S;
 }
 //-------------------------------------------------------
 template <typename T>

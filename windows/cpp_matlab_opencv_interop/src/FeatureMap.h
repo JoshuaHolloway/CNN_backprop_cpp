@@ -48,12 +48,43 @@ namespace framework
 		// TODO
 		// (4)
 		// move constructor
+		FeatureMap(FeatureMap<T>&& fm)
+			: data{fm.data},
+			channels{ fm.channels },
+			rows{ fm.rows },
+			cols{ fm.cols },
+			length{ fm.length }
+		{
+			dim1 = channels;
+			dim2 = rows;
+			dim3 = cols;
+
+			// Free up data for input fm
+			fm.data = nullptr;
+			fm.dim1 = 0;	fm.channels = 0;
+			fm.dim2 = 0;	fm.rows = 0;
+			fm.dim3 = 0;	fm.cols = 0;
+		}
 
 		// TODO
 		// (5)
 		// copy assignment
 		FeatureMap& operator=(const FeatureMap &rhs)
 		{
+			// Create temporary dynamic array to copy into
+			T* temp = new T[a.length];
+
+			// Copy elements from rhs into temporary array
+			for (int i = 0; i != rhs.length; ++i)
+				temp[i] = rhs.data[i];
+
+			// De-allocate data from rhs
+			delete[] data;
+
+			// Copy new data and attributes owned into members owned by lhs
+			data = temp;
+			length = rhs.length;
+			return *this;
 		}
 
 		// TODO
@@ -67,6 +98,18 @@ namespace framework
 			delete[] data;
 			data = nullptr;
 		}
+
+		// Direct Linear-indexing access:
+		T& operator[](int i)
+		{
+			return data[i];
+		}
+		const T& operator[](int i) const
+		{
+			return data[i];
+		}
+		
+
 
 		// (channel, row, col)
 		void set(size_t i, size_t j, size_t k, float val)
@@ -132,7 +175,7 @@ namespace framework
 		size_t channels{ 0 };
 		size_t rows{ 0 };
 		size_t cols{ 0 };
-	//private:
+	private:
 		size_t dim1{ 0 };
 		size_t dim2{ 0 };
 		size_t dim3{ 0 };

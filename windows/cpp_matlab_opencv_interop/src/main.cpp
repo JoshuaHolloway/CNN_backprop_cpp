@@ -147,6 +147,19 @@ public:
 		//mxArray *cppValMxArray = engGetVariable(ep, "matlabVal");
 		//mxArray* output = mxCreateNumericMatrix(mxGetM(matlabVal), mxGetN())
 	}
+
+	template <typename T>
+	void fm_2_matlab(FeatureMap<T> fm)
+	{
+		// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
+		pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
+		
+		// Execute the testbench script
+		command("josh()");
+
+		// Compute frobenius norm between MATLAB and C++
+		return_scalar_from_matlab("error");
+	}
 };
 //=============================================================================
 string ExePath() {
@@ -194,7 +207,7 @@ void do_main()
 	//          2x1x3x3    2x2             4x8      4x4
 
 	// Syntethic image
-	FeatureMap<double> X(1, 4, 4);   X.count();
+	FeatureMap<double> X(1, 8, 8);   X.count();
 	cout << "\nX: " << X.channels << "x" << X.rows << "x" << X.cols << " = \n";
 
 	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
@@ -225,28 +238,22 @@ void do_main()
 	//// Layer 4: FC + Soft-max
 	//Matrix<float> Zo = mult(Wo, A3);
 	//Matrix<float> Ao = softmax(Zo);
-
 	FeatureMap<double> Z1_valid = conv_valid(X, W1);
 	FeatureMap<double> A1 = relu(Z1_valid);
-	Z1_valid.print();
+	FeatureMap<double> Z2 = ave_pool(A1);
 
+	Z2.print();
+	
 	// 3D-data in 1d array
-	const auto A1_transpse = A1.transpose();
-	matlabObj.pass_3D_into_matlab(A1_transpse.data, A1_transpse.channels, A1_transpse.rows, A1_transpse.cols);
+	matlabObj.fm_2_matlab(Z2);
 
 	// Run the script with the synthetic data
-
-/*	matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
-	matlabObj.command("W1 = ones(3, 3, 2)");
-	matlabObj.command("fm_out = Conv(x, W1)")*/;
+	//matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
+	//matlabObj.command("W1 = ones(3, 3, 2)");
+	//matlabObj.command("fm_out = Conv(x, W1)");
 	
-
-	matlabObj.command("josh()");
-	matlabObj.return_scalar_from_matlab("error");
-
 	getchar();
 }
-
 //---------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
