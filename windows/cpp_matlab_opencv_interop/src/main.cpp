@@ -227,12 +227,12 @@ void do_main()
 	//Matrix<float> Ao = softmax(Zo);
 
 	FeatureMap<double> Z1_valid = conv_valid(X, W1);
+	FeatureMap<double> A1 = relu(Z1_valid);
 	Z1_valid.print();
 
-	// TODO - address the error in this function
 	// 3D-data in 1d array
-	FeatureMap<double> Z1_valid_transpse = Z1_valid.transpose();
-	matlabObj.pass_3D_into_matlab(Z1_valid_transpse.data, Z1_valid.channels, Z1_valid.rows, Z1_valid.cols);
+	const auto A1_transpse = A1.transpose();
+	matlabObj.pass_3D_into_matlab(A1_transpse.data, A1_transpse.channels, A1_transpse.rows, A1_transpse.cols);
 
 	// Run the script with the synthetic data
 

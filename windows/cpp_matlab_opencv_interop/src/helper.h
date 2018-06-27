@@ -202,16 +202,6 @@ FeatureMap<T> relu(FeatureMap<T> Z)
 			}
 	return A;
 }
-//-------------------------------------------------------------------------
-template <typename T>
-Matrix<T> relu(const Matrix<T>& Z)
-{
-	Matrix<T> A(Z.rows, Z.cols);
-	for (size_t m = 0; m != Z.rows; ++m)
-		for (size_t n = 0; n != Z.cols; ++n)
-			A.set(m, n, max(0, Z.at(m, n)));
-	return A;
-}
 //-------------------------------------------------------
 template <typename T>
 FeatureMap<T> max_pool(FeatureMap<T> x)
