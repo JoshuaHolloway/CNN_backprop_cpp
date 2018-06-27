@@ -30,13 +30,13 @@ Z4 = W4*A3;                    % Softmax,          10x1
 Y_hat = Softmax(Z4); % Predictions
 
 % % DEBUG: 4-examples with labels {1,2}
-% M = 2; % M examples
-% k = 1; % First example
-% D = [1, 2]; % Labels from MNIST
-% 
-% % One-hot encoding
-% d = zeros(M, 1);
-% d(sub2ind(size(d), D(k), 1)) = 1;
+M = 2; % M examples
+k = 2; % First example
+D = [1, 2]; % Labels from MNIST
+
+% One-hot encoding
+d = zeros(M, 1);
+d(sub2ind(size(d), D(k), 1)) = 1
 
 % % Cross entropy: dZ2 = D - Y
 % dA2  = d - Y_hat;

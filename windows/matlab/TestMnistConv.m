@@ -11,8 +11,6 @@ rng(1);
 %
 W1 = 1e-2*randn([9 9 20]);
 W5 = (2*rand(100, 2000) - 1) * sqrt(6) / sqrt(360 + 2000);
-%W5 = (2*rand(100, 3920) - 1) * sqrt(6) / sqrt(360 + 3920);
-
 Wo = (2*rand( 10,  100) - 1) * sqrt(6) / sqrt( 10 +  100);
 
 X = Images(:, :, 1:8000);
@@ -24,6 +22,7 @@ for epoch = 1:3
 end
 
 save('MnistConv.mat');
+
 
 % Test
 %
@@ -52,5 +51,3 @@ end
 
 acc = acc / N;
 fprintf('Accuracy is %f\n', acc);
-
-

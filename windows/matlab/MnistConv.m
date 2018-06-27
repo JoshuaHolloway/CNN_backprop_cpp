@@ -1,4 +1,4 @@
-function [W1, W5, Wo] = MnistConv(W1, W5, Wo, X, D)
+function [W1, W2, W3] = MnistConv(W1, W2, W3, X, D)
 %
 %
 
@@ -6,8 +6,8 @@ alpha = 0.01;
 beta  = 0.95;
 
 momentum1 = zeros(size(W1));
-momentum5 = zeros(size(W5));
-momentumo = zeros(size(Wo));
+momentum5 = zeros(size(W2));
+momentumo = zeros(size(W3));
 
 N = length(D);
 
@@ -18,8 +18,8 @@ blist = 1:bsize:(N-bsize+1);
 %
 for batch = 1:length(blist)
   dW1 = zeros(size(W1));
-  dW5 = zeros(size(W5));
-  dWo = zeros(size(Wo));
+  dW2 = zeros(size(W2));
+  dW3 = zeros(size(W3));
   
   % Mini-batch loop
   %
@@ -28,24 +28,14 @@ for batch = 1:length(blist)
     % Forward pass = inference
     %
     x  = X(:, :, k);               % Input,           28x28
-    y1 = Conv(x, W1);              % Convolution,  20x20x20
-    
-    
-    y2 = ReLU(y1);                 %
-    
-%     size_y2 = size(y2)  % y2 is 20x20x20 'valid  => 28x28x20 'same'
-    
-    y3 = Pool(y2);                 % Pooling,      10x10x20
-    y4 = reshape(y3, [], 1);       %
-    
-%     size_W5 = size(W5)  % W5 is 100 x 2000
-%     size_y4 = size(y4)  % y4 is 2000 x 1 'valid  => 3920 x 1 'same'
-
-    
-    v5 = W5*y4;                    % ReLU,             2000
-    y5 = ReLU(v5);                 %
-    v  = Wo*y5;                    % Softmax,          10x1
-    y  = Softmax(v);               %
+    Z1 = Conv(x, W1);              % Convolution,  20x20x20
+    A1 = ReLU(Z1);                 %
+    pooled = Pool(A1);                 % Pooling,      10x10x20
+    vec = reshape(pooled, [], 1);       %
+    Z2 = W2*vec;                    % ReLU,             2000
+    A2 = ReLU(Z2);                 %
+    Z3  = W3*A2;                    % Softmax,          10x1
+    A3  = Softmax(Z3);               %
 
     % One-hot encoding
     %
@@ -53,50 +43,24 @@ for batch = 1:length(blist)
     d(sub2ind(size(d), D(k), 1)) = 1;
 
     % Backpropagation
+    %
+    e      = d - A3;                   % Output layer  
+    delta  = e;
 
-    % Loss = Cross-Entropy
-    % Activation of final layer = Soft-max
+    e5     = W3' * delta;             % Hidden(ReLU) layer
+    delta5 = (A2 > 0) .* e5;
 
-    % Modern notation:
-    % dA = d_loss / da
-    % dZ = d_loss / dz
-    %    = (d_loss / da) * (da / dz)
-    %    =  dZ           * g_prime(Z)
-    % dW = dZ * X
+    e4     = W2' * delta5;            % Pooling layer
+    
+    e3     = reshape(e4, size(pooled));
 
-    
-    % Logistic Regression:
-    % One-layer neural-network
-    % Activation: sigmoid: A = g(Z)
-    % Loss: Cross-entropy: L(A,Y)
-    % Cost: Sum of losses: J(W,b) = 1/M * sum(L(A,Y), 1, M)
-    
-    
-    % e = dA_L
-    % delta = dZ_L                    % Modern notation dims (TODO: Modify to change to these classical dims)
-    dA2      = d - y;                % N2 x M (In modified modern notation)
-    delta  = dA2;
-    
-    g_prime_2 = (y5 > 0)
-    pause
-    
-    delta5 =  .* e5;
-    
-    
-    e5     = Wo' * delta;             % Hidden(ReLU) layer
-
-
-    e4     = W5' * delta5;            % Pooling layer
-    
-    e3     = reshape(e4, size(y3));
-
-    e2 = zeros(size(y2));           
-    W3 = ones(size(y2)) / (2*2);
+    e2 = zeros(size(A1));           
+    temp = ones(size(A1)) / (2*2);
     for c = 1:20
-      e2(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* W3(:, :, c);
+      e2(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* temp(:, :, c);
     end
     
-    delta2 = (y2 > 0) .* e2;          % ReLU layer
+    delta2 = (A1 > 0) .* e2;          % ReLU layer
   
     delta1_x = zeros(size(W1));       % Convolutional layer
     for c = 1:20
@@ -104,25 +68,24 @@ for batch = 1:length(blist)
     end
     
     dW1 = dW1 + delta1_x; 
-    dW5 = dW5 + delta5*y4';    
-    dWo = dWo + delta *y5';
+    dW2 = dW2 + delta5*vec';    
+    dW3 = dW3 + delta *A2';
   end 
   
   % Update weights
   %
   dW1 = dW1 / bsize;
-  dW5 = dW5 / bsize;
-  dWo = dWo / bsize;
+  dW2 = dW2 / bsize;
+  dW3 = dW3 / bsize;
   
   momentum1 = alpha*dW1 + beta*momentum1;
   W1        = W1 + momentum1;
   
-  momentum5 = alpha*dW5 + beta*momentum5;
-  W5        = W5 + momentum5;
+  momentum5 = alpha*dW2 + beta*momentum5;
+  W2        = W2 + momentum5;
    
-  momentumo = alpha*dWo + beta*momentumo;
-  Wo        = Wo + momentumo;  
+  momentumo = alpha*dW3 + beta*momentumo;
+  W3        = W3 + momentumo;  
 end
 
 end
-

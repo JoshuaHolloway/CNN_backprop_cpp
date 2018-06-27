@@ -89,11 +89,32 @@ void do_main()
 	FeatureMap<double> Z3 = mult(W3, A2);
 	FeatureMap<double> A3 = relu(Z3);
 	FeatureMap<double> Z4 = mult(W4, A3);
-	FeatureMap<double> A4 = softmax(Z4);
-	A4.print();
+	FeatureMap<double> Y_hat = softmax(Z4);
+	Y_hat.print();
+
+	// Training examples:
+	//Y = [1, 2]
+
+	// One hot first example
+	//d = [1; 0]
+
+	// Compute difference between one-hot encoded example and prediction
+	// e = d - Y_hat
+
+	// delta = e;
+
+	// g_prime_2 = (Y_hat > 0)
+
+	// delta5 = e5 .* g_prime_2; 
+	// dZ_L = 
+
+
 
 	//matlabObj.fm_2_matlab_tensor(Z2);
-	matlabObj.fm_2_matlab_vector(A4);
+	matlabObj.fm_2_matlab_vector(Y_hat);
+
+
+
 
 	// Run the script with the synthetic data
 	//matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
