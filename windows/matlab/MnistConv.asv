@@ -1,4 +1,4 @@
-function [W1, W5, Wo] = MnistConv(W1, W5, Wo, X, D)
+function [W1, W3, W4] = MnistConv(W1, W3, W4, X, D)
 %
 %
 
@@ -6,8 +6,8 @@ alpha = 0.01;
 beta  = 0.95;
 
 momentum1 = zeros(size(W1));
-momentum5 = zeros(size(W5));
-momentumo = zeros(size(Wo));
+momentum5 = zeros(size(W3));
+momentumo = zeros(size(W4));
 
 N = length(D);
 
@@ -18,8 +18,8 @@ blist = 1:bsize:(N-bsize+1);
 %
 for batch = 1:length(blist)
   dW1 = zeros(size(W1));
-  dW5 = zeros(size(W5));
-  dWo = zeros(size(Wo));
+  dW3 = zeros(size(W3));
+  dW4 = zeros(size(W4));
   
   % Mini-batch loop
   %
@@ -27,15 +27,16 @@ for batch = 1:length(blist)
   for k = begin:begin+bsize-1
     % Forward pass = inference
     %
-    x  = X(:, :, k);               % Input,           28x28
-    Z1 = Conv(x, W1);              % Convolution,  20x20x20
-    A1 = ReLU(Z1);                 %
-    pooled = Pool(A1);                 % Pooling,      10x10x20
-    vec = reshape(pooled, [], 1);       %
-    Z2 = W5*vec;                    % ReLU,             2000
-    A2 = ReLU(Z2);                 %
-    Z3  = Wo*A2;                    % Softmax,          10x1
-    y  = Softmax(A3);               %
+    
+    x  = X(:, :, k);                    % Input,           28x28
+    Z1 = Conv(x, W1);                   % Convolution,  20x20x20
+    A1 = ReLU(Z1);                      %
+    Z2 = Pool(A1);                  % Pooling,      10x10x20
+    A2 = reshape(Z2, [], 1);       %
+    Z3 = W3*A2;                        % ReLU,             2000
+    A3 = ReLU(Z3);                      %
+    Z4  = W4*A3;                        % Softmax,          10x1
+    A4  = Softmax(Z4);                  %
 
     % One-hot encoding
     %
@@ -43,49 +44,54 @@ for batch = 1:length(blist)
     d(sub2ind(size(d), D(k), 1)) = 1;
 
     % Backpropagation
-    %
-    e      = d - y;                   % Output layer  
-    delta  = e;
 
-    e5     = Wo' * delta;             % Hidden(ReLU) layer
-    delta5 = (A2 > 0) .* e5;
 
-    e4     = W5' * delta5;            % Pooling layer
-    
-    e3     = reshape(e4, size(pooled));
+    % Layer 4
+    dZ_4  = d - A4;
 
-    e2 = zeros(size(A1));           
-    W3 = ones(size(A1)) / (2*2);
+    % Layer 3
+    dA_3     = W4' * dZ_4;             % Hidden(ReLU) layer
+    g_prime_3 = (A3 > 0);
+    dZ_3 = g_prime_3 .* dA_3;
+
+    % Layer 2
+    dA_2     = W3' * dZ_3;            % Pooling layer
+    e3     = reshape(dA_2, size(Z2));
+
+    % Layer 1
+    dA_1 = zeros(size(A1));           
+    temp = ones(size(A1)) / (2*2);
     for c = 1:20
-      e2(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* W3(:, :, c);
+      dA_1(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* temp(:, :, c);
     end
     
-    delta2 = (A1 > 0) .* e2;          % ReLU layer
+    g_prime_1 = (A1 > 0);
+    dZ_1 = g_prime_1 .* dA_1;          % ReLU layer
   
     delta1_x = zeros(size(W1));       % Convolutional layer
     for c = 1:20
-      delta1_x(:, :, c) = conv2(x(:, :), rot90(delta2(:, :, c), 2), 'valid');
+      delta1_x(:, :, c) = conv2(x(:, :), rot90(dZ_1(:, :, c), 2), 'valid');
     end
     
     dW1 = dW1 + delta1_x; 
-    dW5 = dW5 + delta5*vec';    
-    dWo = dWo + delta *A2';
+    dW3 = dW3 + dZ_3 * A2';    
+    dW4 = dW4 + dZ_4 * A3';
   end 
   
   % Update weights
   %
   dW1 = dW1 / bsize;
-  dW5 = dW5 / bsize;
-  dWo = dWo / bsize;
+  dW3 = dW3 / bsize;
+  dW4 = dW4 / bsize;
   
   momentum1 = alpha*dW1 + beta*momentum1;
   W1        = W1 + momentum1;
   
-  momentum5 = alpha*dW5 + beta*momentum5;
-  W5        = W5 + momentum5;
+  momentum5 = alpha*dW3 + beta*momentum5;
+  W3        = W3 + momentum5;
    
-  momentumo = alpha*dWo + beta*momentumo;
-  Wo        = Wo + momentumo;  
+  momentumo = alpha*dW4 + beta*momentumo;
+  W4        = W4 + momentumo;  
 end
 
 end
