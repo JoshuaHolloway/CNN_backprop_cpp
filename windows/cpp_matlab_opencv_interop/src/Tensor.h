@@ -238,6 +238,13 @@ namespace framework
 			return tensor_out;
 		}
 
+		// mutator
+		void scale(T scale_factor)
+		{
+			for (int i = 0; i != length; ++i)
+				data[i] *= scale_factor;
+		}
+
 
 		void init()
 		{

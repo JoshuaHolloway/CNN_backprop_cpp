@@ -120,21 +120,44 @@ void do_main()
 	auto dZ_3 = hadamard(g_prime_3, dA_3);
 
 	//	dA_2 = W3' * dZ_3;       
-
-
-
-
-	cout << "dA_2:\n";
 	auto dA_2 = mult_2D(W3.transpose(), dZ_3);
-	dA_2.print();
-
+	//cout << "dA_2:\n";
+	//dA_2.print();
 
 	//	e3 = reshape(dA_2, size(Z2)); // De-Vec => Matricize
 
-	cout << "e3:\n";
 	auto e3 = dA_2.tensorize_3D(Z2.channels, Z2.rows, Z2.cols);
+	//cout << "e3:\n";
+	//e3.print();
+
+	//dA_1 = zeros(size(A1));
+	Tensor<double> dA_1(A1.filters, A1.channels, A1.rows, A1.cols);
+	dA_1.zeros();
 
 
+	// De-convolution
+	//for c = 1:20
+	//	kronek = kron(e3(:, : , c), ones([2 2]));
+	//	dA_1(:, : , c) = kronek.*temp(:, : , c);
+	//end
+	de_conv(e3, dA_1);
+	dA_1.print();
+
+	// Test kron()
+	Tensor<double> a(1, 1, 2, 2);
+	Tensor<double> b(1, 1, 3, 3);  
+	b.set(0, 0, 0, 0, 0); b.set(0, 0, 0, 1, 1); b.set(0, 0, 0, 2, 2);
+	b.set(0, 0, 1, 0, 3); b.set(0, 0, 1, 1, 4); b.set(0, 0, 1, 2, 5);
+	b.set(0, 0, 2, 0, 6); b.set(0, 0, 2, 1, 7); b.set(0, 0, 2, 2, 8);
+	b.print();
+	a.ones();
+
+
+
+
+
+	auto c = kronecker(a, b);
+	c.print();
 
 	// dA_2 = W3' * dZ_3;            % Pooling layer
 	// e3 = reshape(dA_2, size(Z2)); % De-Vec

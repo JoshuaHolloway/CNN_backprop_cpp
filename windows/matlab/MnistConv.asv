@@ -62,7 +62,8 @@ for batch = 1:length(blist)
     dA_1 = zeros(size(A1));           
     temp = ones(size(A1)) / (2*2);
     for c = 1:20
-      dA_1(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* temp(:, :, c);
+      kroneckkron(e3(:, :, c), ones([2 2]))
+      dA_1(:, :, c) =  .* temp(:, :, c);
     end
     
     g_prime_1 = (A1 > 0);
@@ -70,7 +71,10 @@ for batch = 1:length(blist)
   
     delta1_x = zeros(size(W1));       % Convolutional layer
     for c = 1:20
-      delta1_x(:, :, c) = conv2(x(:, :), rot90(dZ_1(:, :, c), 2), 'valid');
+        x_slice = x(:, :);
+        dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
+        
+        delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
     end
     
     dW1 = dW1 + delta1_x; 
@@ -79,7 +83,6 @@ for batch = 1:length(blist)
   end 
   
   % Update weights
-  %
   dW1 = dW1 / bsize;
   dW3 = dW3 / bsize;
   dW4 = dW4 / bsize;

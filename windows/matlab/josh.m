@@ -51,6 +51,34 @@ dZ_3 = g_prime_3 .* dA_3;
 dA_2     = W3' * dZ_3;            % Pooling layer
 e3     = reshape(dA_2, size(Z2));
 
+% Layer 1
+dA_1 = zeros(size(A1));           
+temp = ones(size(A1)) / (2*2);
+
+% Change this loop to the number of channels of first filter
+for c = 1:2
+   e3_slice = e3(:, :, c);
+   kronek = kron(e3_slice, ones([2 2]));
+   hadamard_temp = kronek .* temp(:, :, c)
+   
+  dA_1(:, :, c) = hadamard_temp
+end
+
+g_prime_1 = (A1 > 0);
+dZ_1 = g_prime_1 .* dA_1;          % ReLU layer
+
+delta1_x = zeros(size(W1));       % Convolutional layer
+for c = 1:20
+    x_slice = x(:, :);
+    dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
+
+    delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
+end
+
+
+
+
+
 
 % Test cpp with golden reference here in matlab
 [error] = froben(e3, data_from_cpp)
@@ -58,13 +86,13 @@ e3     = reshape(dA_2, size(Z2));
 
 
 
-%y2 = ReLU(y1);                 %
-%y3 = Pool(y2);                 % Pooling,      10x10x20
-%y4 = reshape(y3, [], 1);       %
-% v5 = W5*y4;                    % ReLU,             2000
-% y5 = ReLU(v5);                 %
-% v  = Wo*y5;                    % Softmax,          10x1
-% y  = Softmax(v)               %
+
+
+
+
+
+
+            %
 % ============================================================
 function [error] = froben(matlab, cpp)
     % Frobenius norm

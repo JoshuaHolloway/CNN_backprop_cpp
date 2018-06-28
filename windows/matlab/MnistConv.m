@@ -70,7 +70,10 @@ for batch = 1:length(blist)
   
     delta1_x = zeros(size(W1));       % Convolutional layer
     for c = 1:20
-      delta1_x(:, :, c) = conv2(x(:, :), rot90(dZ_1(:, :, c), 2), 'valid');
+        x_slice = x(:, :);
+        dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
+        
+        delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
     end
     
     dW1 = dW1 + delta1_x; 

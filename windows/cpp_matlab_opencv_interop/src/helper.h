@@ -520,3 +520,91 @@ Tensor<T> hadamard(Tensor<T> A, Tensor<T> B)
 
 	return C;
 }
+//---------------------------------------------------
+template <typename T>
+Tensor<T> kronecker(Tensor<T> A, Tensor<T> B)
+{
+	// This kroenecker poduct assumes that B is filled with ones
+	Tensor<T> C(1, 1, A.rows * B.rows, A.cols * B.cols);
+
+	int offset_l = 0;
+	int out_r = 0;
+	int out_l = 0;
+	for (int i = 0; i < A.rows; ++i)
+	{
+		int offset_r = 0;
+		for (int j = 0; j < A.cols; ++j)
+		{
+			for (int k = 0; k < B.rows; ++k)
+			{
+				for (int l = 0; l < B.cols; ++l)
+					C.set(0, 0, k + offset_l, l + offset_r, B.at(0, 0, k, l));
+			}
+			offset_r += B.cols;
+		}
+		offset_l += B.rows;
+	}
+
+	return C;
+}
+//---------------------------------------------------
+template <typename T>
+void de_conv(Tensor<T> e3, Tensor<T>& dA_1)
+{
+
+	//temp = ones(size(A1)) / (2 * 2);
+	Tensor<double> temp(dA_1.filters, dA_1.channels, dA_1.rows, dA_1.cols);
+	temp.ones();
+	temp.scale(0.25);
+
+
+	//for c = 1:20
+	//	kronek = kron(e3(:, : , c), ones([2 2]));
+	//	dA_1(:, : , c) = kronek.*temp(:, : , c);
+	//end
+	for (int channel = 0; channel < 20; ++channel)
+	{
+		// Slice of e3
+		// e3(:, : , c)
+		Tensor<double> e3_slice(1, 1, e3.rows, e3.cols);
+		for (int row = 0; row != e3.rows; ++row)
+			for (int col = 0; col != e3.cols; ++col)
+				e3_slice.set(0, 0, row, col, e3.at(0, channel, row, col));
+
+
+
+
+		//	kronek = kron(e3(:, : , c), ones([2 2]));
+		Tensor<T> Ones(1, 1, 2, 2);	Ones.ones();
+		auto kron = kronecker(e3_slice, Ones);
+
+		//cout << "e3_slice\n";
+		//e3_slice.print();
+
+		//cout << "kron\n";
+		//kron.print();
+
+
+		// dA_1 is output
+		// e3 = ones(0,2,2,2)
+		// e3_slice is ones(2,2)
+		// kron is ones(4,4)
+
+
+		//	dA_1(:, : , c) = kron .* temp(:, : , c);
+		for (int row = 0; row < dA_1.rows; ++row)
+			for (int col = 0; col < dA_1.cols; ++col)
+			{
+				cout << "kron.at(0, 0, row, col) = " << kron.at(0, 0, row, col) << "\n";
+				//cout << "temp.at(0, channel, row, col)= " << temp.at(0, channel, row, col) << "\n";
+
+				auto hadamard_temp = kron.at(0, 0, row, col) * temp.at(0, channel, row, col);
+				dA_1.set(0, channel, row, col, hadamard_temp);
+				cout << "hadamard_temp = " << hadamard_temp << "\n";
+				cout << "dA_1.at(0, channel, row, col) = " << dA_1.at(0, channel, row, col) << "\n";
+
+			}		
+		//cout << "dA_1.at(0, 0, 0, 0) = " << dA_1.at(0, 0, 0, 0) << "\n";
+		//dA_1.print();
+	}
+}
