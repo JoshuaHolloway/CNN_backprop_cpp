@@ -218,9 +218,11 @@ void do_main()
 			//dW1 = dW1 + delta1_x;
 			//dW3 = dW3 + dZ_3 * A2';    
 			//dW4 = dW4 + dZ_4 * A3';
-			dW1.add(delta1_x);
-			dW3.add(mult_2D(dZ_3, A2.transpose()));
-			dW4.add(mult_2D(dZ_4, A3.transpose()));
+			dW1.accumulate(delta1_x);
+
+
+			//dW3.accumulate(mult_2D(dZ_3, A2.transpose()));
+			//dW4.accumulate(mult_2D(dZ_4, A3.transpose()));
 
 			matlabObj.tensor_2_matlab(e3);
 			// =====================================================================

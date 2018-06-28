@@ -183,30 +183,14 @@ namespace framework
 			return out;
 		}
 
-		// non-mutator
-		Tensor<T> add(Tensor<T> rhs)
-		{
-			assert(filters == rhs.filters);
-			assert(channels == rhs.channels);
-			assert(rows == rhs.rows);
-			assert(cols == rhs.cols);
-
-			Tensor<T> out(rhs.dim1, rhs.dim2, rhs.dim3, rhs.dim4);
-			for (int i = 0; i != rhs.dim1; ++i)       
-				for (int j = 0; j != rhs.dim2; ++j)     
-					for (int k = 0; k != rhs.dim3; ++k)   
-						for (int l = 0; l != rhs.dim4; ++l) 
-							out.set(i, j, k, l, at(i, j, k, l) + rhs.at(i, j, k, l));
-			return out;
-		}
 
 		// mutator
-		void add(Tensor<T> rhs)
+		void accumulate(Tensor<T> rhs)
 		{
-			assert(filters == rhs.filters);
-			assert(channels == rhs.channels);
-			assert(rows == rhs.rows);
-			assert(cols == rhs.cols);
+			//assert(lhs.filters == rhs.filters);
+			//assert(lhs.channels == rhs.channels);
+			//assert(lhs.rows == rhs.rows);
+			//assert(lhs.cols == rhs.cols);
 			for (int i = 0; i != rhs.dim1; ++i)
 				for (int j = 0; j != rhs.dim2; ++j)
 					for (int k = 0; k != rhs.dim3; ++k)
