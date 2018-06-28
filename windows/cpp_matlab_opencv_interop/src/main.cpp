@@ -196,7 +196,6 @@ void do_main()
 				cout << "X:\n";
 				X.print();
 
-
 				cout << "dZ_1_slice:\n";
 				dZ_1_slice.print();
 
