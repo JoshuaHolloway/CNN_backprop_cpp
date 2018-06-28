@@ -113,11 +113,11 @@ void do_main()
 			d.set(0, 0, 0, 0, 0); // 0
 			d.set(0, 0, 1, 0, 0); // 1 
 			d.set(0, 0, 2, 0, 0); // 2
-			d.set(0, 0, 3, 0, 0); // 3
+			d.set(0, 0, 3, 0, 1); // 3
 			d.set(0, 0, 4, 0, 0); // 4
 			d.set(0, 0, 5, 0, 0); // 5
 			d.set(0, 0, 6, 0, 0); // 6
-			d.set(0, 0, 7, 0, 1); // 7
+			d.set(0, 0, 7, 0, 0); // 7
 			d.set(0, 0, 8, 0, 0); // 8
 			d.set(0, 0, 9, 0, 0); // 9
 
@@ -217,7 +217,6 @@ void do_main()
 		// TODO:
 		// TODO:
 		// Apply momentum
-
 
 		// Did not test below!
 		// Did not test below!

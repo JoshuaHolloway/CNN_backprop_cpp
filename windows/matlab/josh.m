@@ -17,7 +17,9 @@ D = Labels(8001:10000);
 %         x(i,j) = (i - 1) * N + j - 1
 %     end
 % end
-x = Images(:,:,1);
+k = 1;
+x = Images(:,:,k);
+figure(1), imshow(x);
 
 
 W1 = ones(3, 3, 20);
@@ -49,9 +51,8 @@ for epoch = 1:epochs
         A4 = Softmax(Z4); % Predictions
 
         % One-hot encoding
-        k = 1; % DEBUG!!!
         d = zeros(10, 1);
-        d(sub2ind(size(d), D(k), 1)) = 1;
+        d(sub2ind(size(d), D(k), 1)) = 1
 
         % % Cross entropy: dZ2 = D - Y
         dZ_4  = d - A4;
