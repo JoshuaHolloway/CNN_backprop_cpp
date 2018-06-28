@@ -112,20 +112,26 @@ void do_main()
 
 			Tensor<double> d(1, 1, neurons[4], 1);
 
-			d.set(0, 0, 0, 0, 1);
-			d.set(0, 0, 1, 0, 0);
+
+			// DEBUG:
+			d.set(0, 0, 0, 0, 0);
+			d.set(0, 0, 1, 0, 1);
 			d.set(0, 0, 2, 0, 0);
 			d.set(0, 0, 3, 0, 0);
+
+			// DEBUG:
+			A4.set(0, 0, 0, 0, 0);
+			A4.set(0, 0, 1, 0, 0.75);
+			A4.set(0, 0, 2, 0, 0);
+			A4.set(0, 0, 3, 0, 0);
+
 
 			auto dZ_4 = d.sub(A4);
 
 
 			// dA_3 = W4' * dZ_4;             % Hidden(ReLU) layer
 			auto W4T = W4.transpose();
-
-
 			auto dA_3 = mult_2D(W4T, dZ_4);
-
 
 			// g_prime_3 = (A3 > 0);
 			auto g_prime_3 = g_prime(A3);
@@ -192,25 +198,11 @@ void do_main()
 
 				auto conv_temp_valid = conv_valid(X, dZ_1_slice);
 
-
-				cout << "X:\n";
-				X.print();
-
-				cout << "dZ_1_slice:\n";
-				dZ_1_slice.print();
-
-				cout << "conv_temp_valid:\n";
-				conv_temp_valid.print();
-
 				// Copy over slice into delta1_x
 				for (int row = 0; row != delta1_x.rows; ++row)
 					for (int col = 0; col != delta1_x.cols; ++col)
 						delta1_x.set(0, channel, row, col, conv_temp_valid.at(0, 0, row, col));
 			} // End loop over channels for delta1_x
-
-			// DEBUG:
-			cout << "delta1_x:\n";
-			delta1_x.print();
 
 
 			// Accumulate gradients:
@@ -218,18 +210,11 @@ void do_main()
 			//dW3 = dW3 + dZ_3 * A2';    
 			//dW4 = dW4 + dZ_4 * A3';
 			dW1.accumulate(delta1_x);
-
-			// DEBUG:
-			cout << "inner dimensions should agree:\n";
-			dZ_3.print_dims();
-
-
 			dW3.accumulate(mult_2D(dZ_3, A2.transpose()));
-			//dW4.accumulate(mult_2D(dZ_4, A3.transpose()));
+			dW4.accumulate(mult_2D(dZ_4, A3.transpose()));
 
-
-			cout << "dW1:\n";
-			dW1.print();
+			cout << "dW4:\n";
+			dW4.print();
 
 
 		} // end loop over examples in one batch

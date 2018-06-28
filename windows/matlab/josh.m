@@ -89,9 +89,13 @@ W4 = ones(4,4);
         delta1_x
 
         % Accumulate gradients
-        dW1 = dW1 + delta1_x
-        dW3 = dW3 + dZ_3 * A2';    
-        dW4 = dW4 + dZ_4 * A3';
+        dW1 = dW1 + delta1_x;
+        dW3 = dW3 + dZ_3 * A2';  
+        
+        dZ_4
+        
+        
+        dW4 = dW4 + dZ_4 * A3'
         
         
         % Test cpp with golden reference here in matlab
