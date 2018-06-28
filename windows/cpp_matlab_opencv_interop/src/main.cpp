@@ -193,16 +193,23 @@ void do_main()
 
 				auto conv_temp_valid = conv_valid(X, dZ_1_slice);
 
+
+				cout << "X:\n";
+				X.print();
+
+
+				cout << "conv_temp_valid:\n";
+				dZ_1_slice.print();
+
+				cout << "conv_temp_valid:\n";
+				conv_temp_valid.print();
+
 				// Copy over slice into delta1_x
 				for (int row = 0; row != delta1_x.rows; ++row)
 					for (int col = 0; col != delta1_x.cols; ++col)
 						delta1_x.set(0, channel, row, col, conv_temp_valid.at(0, 0, row, col));
-
-				// delta1_x is shifted in both channels by 1 pixel in row and col
-				// delta1_x is shifted in both channels by 1 pixel in row and col
-				// delta1_x is shifted in both channels by 1 pixel in row and col
-				// delta1_x is shifted in both channels by 1 pixel in row and col
 			}
+			cout << "delta1_x:\n";
 			delta1_x.print();
 
 			// =====================================================================

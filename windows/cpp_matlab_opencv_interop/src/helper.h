@@ -179,9 +179,24 @@ FeatureMap<T> conv_valid(FeatureMap<T>& x, Tensor<T>& h)
 template <typename T>
 Tensor<T> conv_valid(Tensor<T>& x, Tensor<T>& h)
 {
-	const size_t y_rows = x.rows - h.rows + 1;
-	const size_t y_cols = x.cols - h.cols + 1;
+	// NOTE: For odd samples use floor(K/2) for output indexing
+	// NOTE: For even samples use floor(K/2)-1 for output indexing
+	//   My even indexing may not generalize completely, but works as an 
+	//	 ad-hoc method for the moment
+	
+	size_t y_rows = 0;
+	size_t y_cols = 0;
+	assert(h.rows < x.rows);
+	assert(h.cols < x.cols);
+	if (h.rows % 2 == 0) // Even rows
+		y_rows = x.rows - h.rows;
+	else								 // Odd rows
+		y_rows = x.rows - h.rows + 1;
 
+	if (h.cols % 2 == 0) // Even cols
+		y_cols = x.cols - h.cols;
+	else								 // Odd cols
+		y_cols = x.cols - h.cols + 1;
 
 	// 'same' 2D conv with 3D feature maps with implicit matrix slice addition
 	// Zero-padding is also implicit
@@ -213,7 +228,23 @@ Tensor<T> conv_valid(Tensor<T>& x, Tensor<T>& h)
 							}
 						}
 					}
-					y.set(0, idq, idy - 1, idx - 1, Pvalue);
+
+					// TODO - take this logic out of the loop
+					// Ad-hoc mod 1: If h is even then write to index idx-2,idy-2 instead of idx-1,idy-1
+					// This assumes the actual convolutionis proper and it is only written out wrong
+					int out_idy = 0;
+					int out_idx = 0;
+					if (h.rows % 2 == 0) // Even rows
+						out_idy = idy - 2;
+					else								 // Odd rows
+						out_idy = idy - 1;
+
+					if (h.cols % 2 == 0) // Even cols
+						out_idx = idx - 2;
+					else								 // Odd cols
+						out_idx = idx - 1;
+					
+					y.set(0, idq, out_idy, out_idx, Pvalue);
 				}
 			}
 		}
