@@ -39,12 +39,10 @@ for batch = 1:length(blist)
     A4  = Softmax(Z4);                  %
 
     % One-hot encoding
-    %
     d = zeros(10, 1);
     d(sub2ind(size(d), D(k), 1)) = 1;
 
     % Backpropagation
-
 
     % Layer 4
     dZ_4  = d - A4;

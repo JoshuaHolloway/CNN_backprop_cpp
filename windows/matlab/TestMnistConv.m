@@ -5,6 +5,9 @@ Images = reshape(Images, 28, 28, []);
 Labels = loadMNISTLabels('t10k-labels.idx1-ubyte');
 Labels(Labels == 0) = 10;    % 0 --> 10
 
+figure(1), imshow(Images(:,:,1));
+
+
 rng(1);
 
 % Learning

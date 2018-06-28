@@ -138,8 +138,8 @@ public:
 		double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
 
 		// Get dimensions from MATLAB
-		double rows = return_scalar_from_matlab("rows");
-		double cols = return_scalar_from_matlab("cols");
+		double rows = 28;// return_scalar_from_matlab("rows");
+		double cols = 28;// return_scalar_from_matlab("cols");
 		
 		cppValDblPtr = transposeLin(cppValDblPtr, (int)cols, (int)rows);
 
@@ -198,12 +198,7 @@ public:
 	// - - - - - - - - - - - - - - - - - - - - - - - - - -
 	void tensor_2_matlab(framework::Tensor<double> tensor)
 	{
-
-		tensor.print();
-		tensor.print_dims();
-
 		// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
-		//pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
 		pass_4D_into_matlab(&tensor.transpose()[0], tensor.filters, tensor.channels, tensor.rows, tensor.cols);
 
 		// Execute the testbench script
@@ -212,7 +207,7 @@ public:
 		// TODO - change this back to return the error variable
 
 		//// Compute frobenius norm between MATLAB and C++
-		//return_scalar_from_matlab("error");
+		return_scalar_from_matlab("error");
 	}
 
 	//template <typename T>

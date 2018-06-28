@@ -1,35 +1,40 @@
 clc
 
-N0 = 1;
-N1 = 2;
-N2 = 4;
+neurons = [1, 20, 20, 2000, 100, 10];
 
 Images = loadMNISTImages('t10k-images.idx3-ubyte');
 Images = reshape(Images, 28, 28, []);
+Labels = loadMNISTLabels('t10k-labels.idx1-ubyte');
+Labels(Labels == 0) = 10;    % 0 --> 10
+
+%X = Images(:, :, 8001:10000);
+D = Labels(8001:10000);
+
+% N = 6
+% x = zeros(N,N);
+% for i = 1:N
+%     for j = 1:N
+%         x(i,j) = (i - 1) * N + j - 1
+%     end
+% end
+x = Images(:,:,1);
 
 
-N = 6
-x = zeros(N,N);
-for i = 1:N
-    for j = 1:N
-        x(i,j) = (i - 1) * N + j - 1
-    end
-end
-x = Images(:,:,1)
-
-
-W1 = ones(3,3,N1)
-W3 = ones(4,8);
-W4 = ones(4,4);
+W1 = ones(3, 3, 20);
+%W3 = ones(100, 2000);
+W3 = ones(100, 3380);
+W4 = ones(10, 100);
 
 % TODO - add loop over batches
-
+epochs = 1;
+examples = 1;
+for epoch = 1:epochs
+    
+    % Initialize Gradient with zeros for l-epoch
     dW1 = zeros(size(W1));
     dW3 = zeros(size(W3));
     dW4 = zeros(size(W4));
-
-        % TODO - add loop over examples
-
+    for example = 1:examples
 
 
         % Replaced custom conv with built-in conv
@@ -43,17 +48,10 @@ W4 = ones(4,4);
         Z4 = W4*A3;                    % Softmax,          10x1
         A4 = Softmax(Z4); % Predictions
 
-        %% Debug:
-        A4 = [0; 0.75; 0; 0]
-
-        % % DEBUG: 4-examples with labels {1,2}
-        M = 2; % M examples
-        k = 2; % First example
-        D = [1, 2]; % Labels from MNIST
-
         % One-hot encoding
-        d = zeros(N2, 1);
-        d(sub2ind(size(d), D(k), 1)) = 1
+        k = 1; % DEBUG!!!
+        d = zeros(10, 1);
+        d(sub2ind(size(d), D(k), 1)) = 1;
 
         % % Cross entropy: dZ2 = D - Y
         dZ_4  = d - A4;
@@ -69,48 +67,41 @@ W4 = ones(4,4);
         dA_1 = zeros(size(A1));           
         temp = ones(size(A1)) / (2*2);
 
-        % Change this loop to the number of channels of first filter
-        for c = 1:2
+        for c = 1:20
            e3_slice = e3(:, :, c);
            kronek = kron(e3_slice, ones([2 2]));
-           hadamard_temp = kronek .* temp(:, :, c)
+           hadamard_temp = kronek .* temp(:, :, c);
 
-          dA_1(:, :, c) = hadamard_temp
+          dA_1(:, :, c) = hadamard_temp;
         end
 
         g_prime_1 = (A1 > 0);
         dZ_1 = g_prime_1 .* dA_1;          % ReLU layer
 
         delta1_x = zeros(size(W1));       % Convolutional layer
-        for c = 1:2
+        for c = 1:20
             x_slice = x(:, :);
             %dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
-            dZ_1_not_rotated = dZ_1(:, :, c)
+            dZ_1_not_rotated = dZ_1(:, :, c);
             
             %delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
-            delta1_x(:, :, c) = conv2(x_slice, dZ_1_not_rotated, 'valid')
+            delta1_x(:, :, c) = conv2(x_slice, dZ_1_not_rotated, 'valid');
         end
-        delta1_x
+        delta1_x;
 
         % Accumulate gradients
         dW1 = dW1 + delta1_x;
-        dW3 = dW3 + dZ_3 * A2';  
-        
-        dZ_4
-        
-        
-        dW4 = dW4 + dZ_4 * A3'
-        
+        dW3 = dW3 + dZ_3 * A2';         
+        dW4 = dW4 + dZ_4 * A3';
         
         % Test cpp with golden reference here in matlab
-        [error] = froben(e3, data_from_cpp)
+        % Don't use with dW1
+        [error] = froben(dW4, data_from_cpp);
         
-
-        % TODO - end loop over examples
+    end % end loop over examples
         
-    % TODO - end loop over batches
+end % end loop over batches
 
-% TODO - end function definition
 
 
 

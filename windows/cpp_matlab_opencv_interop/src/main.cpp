@@ -33,8 +33,8 @@ void do_main()
 	matlabObj.command("Images = loadMNISTImages('t10k-images.idx3-ubyte')");
 	matlabObj.command("Images = reshape(Images, 28, 28, [])");
 	matlabObj.command("img = Images(:,:,1)"); // Store 1st MNIST image as matrix
-	matlabObj.command("rows = size(img, 1)"); 
-	matlabObj.command("cols = size(img, 2)"); 
+	//matlabObj.command("rows = size(img, 1)"); 
+	//matlabObj.command("cols = size(img, 2)"); 
 	
 	//double* x = new double[28 * 28];
 	cv::Mat x = matlabObj.return_matrix_as_cvMat_from_matlab("img");
@@ -51,7 +51,7 @@ void do_main()
 	for (int i = 0; i != x.rows; ++i)
 		for (int j = 0; j != x.cols; ++j)
 			xx[i * x.cols + j] = x.at<double>(i, j);
-	display_image(xx, 28, 28, false);
+	//display_image(xx, 28, 28, false);
 
 
 	// First step in applying the read in MNIST data from MATLAB:
@@ -62,40 +62,31 @@ void do_main()
 	using framework::Tensor;
 	using framework::Matrix;
 
-	static constexpr size_t examples = 1;
-	static constexpr size_t row_features = 6, col_features = 6;
-	static constexpr size_t features = row_features * col_features; // Number of features
-	static constexpr size_t layers = 5; // Number of layers in network
-	static constexpr array<size_t, layers> neurons = { 1, 2, 8, 4, 4 }; // Number of neurons in each layer (input has features+bias)
+	// MATLAB:
+	static constexpr size_t M = 1;
+	static constexpr size_t R[3] = { 28, 26, 13 }; // TEMP! Change to 9x9
+	static constexpr size_t C[3] = { 28, 26, 13 }; // TEMP! Change to 9x9
+	static constexpr size_t neurons[6] = { 1,  20, 20, 3380, 100, 10 }; // TEMP! Change to 2000!
+	static constexpr size_t K = 3; // TEMP! Change to 9x9
+	//                              N0  N1  N2   N3   N4
+
+	// x:  28 x 28 x 1													R  x C x	N[0]      1    x  R[0] x  C[0] x N[0]
+	// W1: 9 x 9 x 20														K  x K x N0         N[1] x  N[0] x  K    x K
+	// W3: 100 x 2000														N4 x N3             1    x  1    x  N[4] x N[3]
+	// W4: 10 x 100                             N5 x N4             1    x  1    x  N[5] x N[4]
+	// d:  10 x 1     with 1 in  7 position
 
 
-	// Layer: 0          1            2       
-	//      image     conv+relu      max            vec       fc+relu 
-	//     1x28x28 -> 20x28x28 -> 20x14x14 ->  -> 
-	//                20x9x9         2x2      
-
-	// DEBUG:
-	// Layer: 0     1       2               3         4
-	//  image   conv+relu  max     vec    fc+relu  fc+softmax
-	//      1x4x4 -> 2x4x4 -> 2x2x2 -> 8x1 ->  4x1  ->  4x1
-	//          2x1x3x3    2x2             4x8      4x4
-
-	// Instantiate data tensor with the first image from MNIST
-	Tensor<double> X(1, 1, row_features, col_features, xx);
-
-	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
-	// Step 2.a: Compute Z1 in MATLAB
-	// Step 2.b: Compute Z1 in C++
-	// Step 3: Send Z1 from C++ into MATLAB
-	//	c++ -> MATLAB
-	// Step 4: Compute L2-norm in MATLAB
+	// Pass in image data into data matrix:
+	Tensor<double> X(1, neurons[0], R[0], C[0], xx);
 
 	//// Weights:
-	Tensor<double> W1(2, 1, 3, 3);		W1.ones();
-	Tensor<double> W3(1, 1, neurons[3], neurons[2]);					W3.ones();
-	Tensor<double> W4(1, 1, neurons[4], neurons[3]);					W4.ones(); // Two outpus
+	Tensor<double> W1(neurons[1], neurons[0], K, K);		W1.ones();
+	Tensor<double> W3(1, 1, neurons[4], neurons[3]);					W3.ones();
+	Tensor<double> W4(1, 1, neurons[5], neurons[4]);					W4.ones(); // Two outpus
 
-	const size_t batches = 1;
+	static constexpr size_t batches = 1;
+	static constexpr size_t examples = 1;
 	for (int batch = 0; batch != batches; ++batch)
 	{
 		// Initialize gradients to zero (done in constructor)
@@ -114,34 +105,21 @@ void do_main()
 			auto Z4 = mult_2D(W4, A3);
 			auto A4 = softmax(Z4);
 
-			// DEBUG:
-			A4.set(0, 0, 0, 0, 0);
-			A4.set(0, 0, 1, 0, 0.75);
-			A4.set(0, 0, 2, 0, 0);
-			A4.set(0, 0, 3, 0, 0);
 
-			A4.print();
-
-			// Training examples:
-			//Y = [1, 2] out of neurons[4] = 4 outputs: {1,2,3,4}
-
-			// One hot first example
-			//d = [1; 0; 0; 0]
-
-			Tensor<double> d(1, 1, neurons[4], 1);
+			Tensor<double> d(1, 1, neurons[5], 1);
 
 
-			// DEBUG:
-			d.set(0, 0, 0, 0, 0);
-			d.set(0, 0, 1, 0, 1);
-			d.set(0, 0, 2, 0, 0);
-			d.set(0, 0, 3, 0, 0);
-
-			// DEBUG:
-			A4.set(0, 0, 0, 0, 0);
-			A4.set(0, 0, 1, 0, 0.75);
-			A4.set(0, 0, 2, 0, 0);
-			A4.set(0, 0, 3, 0, 0);
+			// DEBUG: - Set up one hot-encoding for first example from MNIST(7)
+			d.set(0, 0, 0, 0, 0); // 0
+			d.set(0, 0, 1, 0, 0); // 1 
+			d.set(0, 0, 2, 0, 0); // 2
+			d.set(0, 0, 3, 0, 0); // 3
+			d.set(0, 0, 4, 0, 0); // 4
+			d.set(0, 0, 5, 0, 0); // 5
+			d.set(0, 0, 6, 0, 0); // 6
+			d.set(0, 0, 7, 0, 1); // 7
+			d.set(0, 0, 8, 0, 0); // 8
+			d.set(0, 0, 9, 0, 0); // 9
 
 
 			auto dZ_4 = d.sub(A4);
@@ -184,9 +162,7 @@ void do_main()
 
 			//dZ_1 = g_prime_1.*dA_1;
 			auto dZ_1 = hadamard(g_prime_1, dA_1);
-			dZ_1.print_dims();
-
-
+			
 			//delta1_x = zeros(size(W1));       % Convolutional layer
 			//for c = 1:20
 			//		x_slice = x(:, :);
@@ -231,9 +207,9 @@ void do_main()
 			dW3.accumulate(mult_2D(dZ_3, A2.transpose()));
 			dW4.accumulate(mult_2D(dZ_4, A3.transpose()));
 
-			cout << "dW4:\n";
-			dW4.print();
-
+			// NOTE: only pass in 3D data => don't pass in dW1, it is (20 x 1 x K x K)
+			cout << "Sending data to MATLAB...\n";
+			matlabObj.tensor_2_matlab(dW4);
 
 		} // end loop over examples in one batch
 		
@@ -264,8 +240,6 @@ void do_main()
 		W1.accumulate(dW1);
 		W3.accumulate(dW3);
 		W4.accumulate(dW4);
-
-		//matlabObj.tensor_2_matlab(e3);
 
 	} // end loop over batches
 
