@@ -412,16 +412,18 @@ template <typename T>
 Tensor<T> mult_2D(Tensor<T> A, Tensor<T> B)
 {
 	// Input: 
-	// B is 1 x N x 1  column-vector
-	// A is 1 x M x N  matrix
+	// A is 1 x 1 x M x N  matrix
+	// B is 1 x 1 x N x P  matrix
+
 	// Output:
-	// C is 1 x M x 1  column-vector
+	// C is 1 x M x P  matrix
 
 	assert(A.cols == B.rows);
 	const size_t M = A.rows;
 	const size_t N = A.cols;
+	const size_t P = B.cols;
 
-	Tensor<T> C(1, 1, M, 1);
+	Tensor<T> C(1, 1, M, P);
 	for (size_t n = 0; n < B.cols; ++n) // For vector B, this will run only once
 		for (size_t m = 0; m < A.rows; ++m)
 		{
