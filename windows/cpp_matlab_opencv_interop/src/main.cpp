@@ -134,7 +134,6 @@ void do_main()
 	Tensor<double> dA_1(A1.filters, A1.channels, A1.rows, A1.cols);
 	dA_1.zeros();
 
-
 	// De-convolution
 	//for c = 1:20
 	//	kronek = kron(e3(:, : , c), ones([2 2]));
@@ -143,28 +142,29 @@ void do_main()
 	de_conv(e3, dA_1);
 	dA_1.print();
 
-	// Test kron()
-	Tensor<double> a(1, 1, 2, 2);
-	Tensor<double> b(1, 1, 3, 3);  
-	b.set(0, 0, 0, 0, 0); b.set(0, 0, 0, 1, 1); b.set(0, 0, 0, 2, 2);
-	b.set(0, 0, 1, 0, 3); b.set(0, 0, 1, 1, 4); b.set(0, 0, 1, 2, 5);
-	b.set(0, 0, 2, 0, 6); b.set(0, 0, 2, 1, 7); b.set(0, 0, 2, 2, 8);
-	b.print();
-	a.ones();
+	//g_prime_1 = (A1 > 0);
+	auto g_prime_1 = g_prime(A1);
+
+	//dZ_1 = g_prime_1.*dA_1;
+	auto dZ_1 = hadamard(g_prime_1, dA_1);
+
+	dZ_1.print();
+	getchar();
+
+	//delta1_x = zeros(size(W1));       % Convolutional layer
+	//for c = 1:20
+	//		x_slice = x(:, : );
+	//		dZ_1_rotated = rot90(dZ_1(:, : , c), 2);
+
+	//		delta1_x(:, : , c) = conv2(x_slice, dZ_1_rotated, 'valid');
+	//end
+	Tensor<double> delta1_x(W1.filters, W1.channels, W1.rows, W1.cols);
 
 
 
-
-
-	auto c = kronecker(a, b);
-	c.print();
-
-	// dA_2 = W3' * dZ_3;            % Pooling layer
-	// e3 = reshape(dA_2, size(Z2)); % De-Vec
 
 	matlabObj.tensor_2_matlab(e3);
 	
-
 	// Run the script with the synthetic data
 	//matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
 	//matlabObj.command("W1 = ones(3, 3, 2)");

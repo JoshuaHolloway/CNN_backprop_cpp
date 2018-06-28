@@ -71,7 +71,6 @@ delta1_x = zeros(size(W1));       % Convolutional layer
 for c = 1:20
     x_slice = x(:, :);
     dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
-
     delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
 end
 

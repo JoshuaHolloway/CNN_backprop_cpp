@@ -562,7 +562,7 @@ void de_conv(Tensor<T> e3, Tensor<T>& dA_1)
 	//	kronek = kron(e3(:, : , c), ones([2 2]));
 	//	dA_1(:, : , c) = kronek.*temp(:, : , c);
 	//end
-	for (int channel = 0; channel < 20; ++channel)
+	for (int channel = 0; channel < 2; ++channel) // TODO - change this to number of channels in first weight tensor
 	{
 		// Slice of e3
 		// e3(:, : , c)
@@ -595,13 +595,13 @@ void de_conv(Tensor<T> e3, Tensor<T>& dA_1)
 		for (int row = 0; row < dA_1.rows; ++row)
 			for (int col = 0; col < dA_1.cols; ++col)
 			{
-				cout << "kron.at(0, 0, row, col) = " << kron.at(0, 0, row, col) << "\n";
+				//cout << "kron.at(0, 0, row, col) = " << kron.at(0, 0, row, col) << "\n";
 				//cout << "temp.at(0, channel, row, col)= " << temp.at(0, channel, row, col) << "\n";
 
 				auto hadamard_temp = kron.at(0, 0, row, col) * temp.at(0, channel, row, col);
 				dA_1.set(0, channel, row, col, hadamard_temp);
-				cout << "hadamard_temp = " << hadamard_temp << "\n";
-				cout << "dA_1.at(0, channel, row, col) = " << dA_1.at(0, channel, row, col) << "\n";
+				//cout << "hadamard_temp = " << hadamard_temp << "\n";
+				//cout << "dA_1.at(0, channel, row, col) = " << dA_1.at(0, channel, row, col) << "\n";
 
 			}		
 		//cout << "dA_1.at(0, 0, 0, 0) = " << dA_1.at(0, 0, 0, 0) << "\n";

@@ -62,8 +62,7 @@ for batch = 1:length(blist)
     dA_1 = zeros(size(A1));           
     temp = ones(size(A1)) / (2*2);
     for c = 1:20
-      kroneckkron(e3(:, :, c), ones([2 2]))
-      dA_1(:, :, c) =  .* temp(:, :, c);
+      dA_1(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* temp(:, :, c);
     end
     
     g_prime_1 = (A1 > 0);
@@ -73,6 +72,7 @@ for batch = 1:length(blist)
     for c = 1:20
         x_slice = x(:, :);
         dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
+        dZ_1_not_rotated = (:, :, c), 2);
         
         delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
     end

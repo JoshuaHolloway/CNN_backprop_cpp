@@ -72,8 +72,10 @@ for batch = 1:length(blist)
     for c = 1:20
         x_slice = x(:, :);
         dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
+        %dZ_1_not_rotated = dZ_1(:, :, c);
         
         delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
+        %delta1_x(:, :, c) = conv2(x_slice, dZ_1_not_rotated, 'valid');
     end
     
     dW1 = dW1 + delta1_x; 
