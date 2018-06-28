@@ -188,14 +188,14 @@ Tensor<T> conv_valid(Tensor<T>& x, Tensor<T>& h)
 	size_t y_cols = 0;
 	assert(h.rows < x.rows);
 	assert(h.cols < x.cols);
-	if (h.rows % 2 == 0) // Even rows
-		y_rows = x.rows - h.rows;
-	else								 // Odd rows
+	//if (h.rows % 2 == 0) // Even rows
+	//	y_rows = x.rows - h.rows;
+	//else								 // Odd rows
 		y_rows = x.rows - h.rows + 1;
 
-	if (h.cols % 2 == 0) // Even cols
-		y_cols = x.cols - h.cols;
-	else								 // Odd cols
+	//if (h.cols % 2 == 0) // Even cols
+	//	y_cols = x.cols - h.cols;
+	//else								 // Odd cols
 		y_cols = x.cols - h.cols + 1;
 
 	// 'same' 2D conv with 3D feature maps with implicit matrix slice addition
@@ -208,9 +208,21 @@ Tensor<T> conv_valid(Tensor<T>& x, Tensor<T>& h)
 
 	for (int idq = 0; idq < h.filters; ++idq) // out_channels
 	{
-		for (int idy = h.rows / 2; idy < x.rows - h.rows / 2; ++idy) // out_rows
+		// TODO - take this logic out of the loop
+		int idy_lim = 0;
+		if (h.rows % 2 == 0) // Even rows
+			idy_lim = x.rows - h.rows / 2 + 1;
+		else								 // Odd rows
+			idy_lim = x.rows - h.rows / 2;
+		for (int idy = h.rows / 2; idy < idy_lim; ++idy) // out_rows
 		{
-			for (int idx = h.cols / 2; idx < x.cols - h.cols / 2; ++idx) // out_cols
+			// TODO - take this logic out of the loop
+			int idx_lim = 0;
+			if (h.cols % 2 == 0) // Even cols
+				idx_lim = x.rows - h.cols/ 2 + 1;
+			else								 // Odd cols
+				idx_lim = x.rows - h.cols / 2;
+			for (int idx = h.cols / 2; idx < idx_lim; ++idx) // out_cols
 			{
 				float Pvalue = 0.0f;
 				for (int idz = 0; idz < x.channels; ++idz) // input_channels

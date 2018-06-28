@@ -1,5 +1,4 @@
 // Josh Holloway
-// This is a program linking together OpenCV and MATLAB
 //=============================================================================
 #include "matlabClass.h"
 #include "helper.h"
@@ -198,7 +197,7 @@ void do_main()
 				X.print();
 
 
-				cout << "conv_temp_valid:\n";
+				cout << "dZ_1_slice:\n";
 				dZ_1_slice.print();
 
 				cout << "conv_temp_valid:\n";
@@ -208,38 +207,40 @@ void do_main()
 				for (int row = 0; row != delta1_x.rows; ++row)
 					for (int col = 0; col != delta1_x.cols; ++col)
 						delta1_x.set(0, channel, row, col, conv_temp_valid.at(0, 0, row, col));
-			}
+			} // End loop over channels for delta1_x
+
+			// DEBUG:
 			cout << "delta1_x:\n";
 			delta1_x.print();
 
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// Below has not been checked for correctness!
-			// Need to fix that shifting problem first
 
-
-			// Update parameters
+			// Accumulate gradients:
 			//dW1 = dW1 + delta1_x;
 			//dW3 = dW3 + dZ_3 * A2';    
 			//dW4 = dW4 + dZ_4 * A3';
 			dW1.accumulate(delta1_x);
-
-
 			//dW3.accumulate(mult_2D(dZ_3, A2.transpose()));
 			//dW4.accumulate(mult_2D(dZ_4, A3.transpose()));
 
-			matlabObj.tensor_2_matlab(e3);
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-			// =====================================================================
-		} // end loop over example
+
+			cout << "dW1:\n";
+			dW1.print();
+
+
+		} // end loop over examples in one batch
+		
+		// TODO:
+		// Apply momentum
+
+		// TODO:
+		// Update params
+
+	
+
+
+
+		//matlabObj.tensor_2_matlab(e3);
+
 	} // end loop over batches
 
 	// Run the script with the synthetic data

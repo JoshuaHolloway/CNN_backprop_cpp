@@ -74,22 +74,15 @@ for batch = 1:length(blist)
         dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
         %dZ_1_not_rotated = dZ_1(:, :, c);
         
-        % DEBUG:
-        % DEBUG:
-        % DEBUG:
-        % DEBUG:
-        size(dZ_1_rotated)
-        pause
-        
-        
         delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
         %delta1_x(:, :, c) = conv2(x_slice, dZ_1_not_rotated, 'valid');
-    end
+    end % loop over channels
     
+    % Accumulate gradients
     dW1 = dW1 + delta1_x; 
     dW3 = dW3 + dZ_3 * A2';    
     dW4 = dW4 + dZ_4 * A3';
-  end 
+  end % loop over examples in batch
   
   % Update weights
   dW1 = dW1 / bsize;
@@ -104,6 +97,6 @@ for batch = 1:length(blist)
    
   momentumo = alpha*dW4 + beta*momentumo;
   W4        = W4 + momentumo;  
-end
+end % loop over batches
 
-end
+end % Function definition
