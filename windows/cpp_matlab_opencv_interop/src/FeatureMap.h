@@ -5,7 +5,13 @@ using std::cout;
 
 namespace framework
 {
-	template <typename T>
+	template<typename T>
+	class FeatureMap;
+
+	template<typename T>
+	FeatureMap<T> operator-(const FeatureMap<T>& lhs, const FeatureMap<T>& rhs);
+
+	template<typename T>
 	class FeatureMap
 	{
 	public:
@@ -109,6 +115,20 @@ namespace framework
 			return data[i];
 		}
 		
+		FeatureMap<T> sub(FeatureMap<T> rhs)
+		{
+			assert(channels == rhs.channels);
+			assert(rows == rhs.rows);
+			assert(cols == rhs.cols);
+
+			FeatureMap<T> out(rhs.dim1, rhs.dim2, rhs.dim3);
+			for (int i = 0; i != rhs.channels; ++i)
+				for (int j = 0; j != rhs.rows; ++j)
+					for (int k = 0; k != rhs.cols; ++k)
+						out.set(i, j, k, at(i,j,k) - rhs.at(i,j,k));
+			return out;
+		}
+
 
 
 		// (channel, row, col)
@@ -137,6 +157,13 @@ namespace framework
 					cout << "\n";
 				}
 			}
+		}
+
+		void print_dims()
+		{
+			cout << "Channels: " << channels << "\n";
+			cout << "Rows: " << rows << "\n";
+			cout << "Cols: " << cols << "\n";
 		}
 
 		void ones()
@@ -194,4 +221,5 @@ namespace framework
 		T* data{ nullptr };
 	};
 	//---------------
+
 }

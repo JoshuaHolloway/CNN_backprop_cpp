@@ -16,7 +16,7 @@ string ExePath() {
 //=============================================================================
 void do_main()
 {
-	// Instantiat matlab engine object
+	// Instantiate matlab engine object
 	matlabClass matlabObj;
 
 	// Change to active directory 
@@ -34,11 +34,12 @@ void do_main()
 	using framework::Filter;
 	using framework::Matrix;
 
-	static constexpr size_t examples = 1e5; // Number of examples
-	static constexpr size_t rows = 28, cols = 28;
-	static constexpr size_t features = rows * cols; // Number of features
-	static constexpr size_t layers = 3; // Number of layers in network
-	static constexpr array<size_t, layers> neurons = { features + 1, 4, 1 }; // Number of neurons in each layer (input has features+bias)
+	static constexpr size_t examples = 1;
+	static constexpr size_t row_features = 6, col_features = 6;
+	static constexpr size_t features = row_features * col_features; // Number of features
+	static constexpr size_t layers = 5; // Number of layers in network
+	static constexpr array<size_t, layers> neurons = { 1, 2, 8, 4, 4 }; // Number of neurons in each layer (input has features+bias)
+
 
 	// Layer: 0          1            2       
 	//      image     conv+relu      max            vec       fc+relu 
@@ -52,7 +53,7 @@ void do_main()
 	//          2x1x3x3    2x2             4x8      4x4
 
 	// Syntethic image
-	FeatureMap<double> X(1, 6, 6);   X.count();
+	FeatureMap<double> X(1, row_features, col_features);   X.count();
 
 	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
 	// Step 2.a: Compute Z1 in MATLAB
@@ -63,8 +64,9 @@ void do_main()
 
 	//// Weights:
 	Filter<double> W1(2, 1, 3, 3);		W1.ones();
-	Matrix<double> W3(4, 8);					W3.ones();
-	Matrix<double> W4(4, 4);					W4.ones(); // Two outpus
+	Matrix<double> W3(neurons[3], neurons[2]);					W3.ones();
+
+	Matrix<double> W4(neurons[4], neurons[3]);					W4.ones(); // Two outpus
 
 	//// Layer 1: Conv + ReLu
 	//FeatureMap<float> Z1 = conv(X, W1);
@@ -89,32 +91,45 @@ void do_main()
 	FeatureMap<double> Z3 = mult(W3, A2);
 	FeatureMap<double> A3 = relu(Z3);
 	FeatureMap<double> Z4 = mult(W4, A3);
-	FeatureMap<double> Y_hat = softmax(Z4);
-	Y_hat.print();
+	FeatureMap<double> A4 = softmax(Z4);
+	
+	cout << "output of network = \n";
+	A4.print();
 
 	// Training examples:
-	//Y = [1, 2]
+	//Y = [1, 2] out of neurons[4] = 4 outputs: {1,2,3,4}
 
 	// One hot first example
-	//d = [1; 0]
+	//d = [1; 0; 0; 0]
 
-	// Compute difference between one-hot encoded example and prediction
-	// e = d - Y_hat
+	FeatureMap<double> d(1, neurons[4], 1);
+	
+	d.set(0, 0, 0, 1);
+	d.set(0, 1, 0, 0);
+	d.set(0, 2, 0, 0);
+	d.set(0, 3, 0, 0);
+	
+	cout << "one-hot encoded = \n";
+	d.print();
 
-	// delta = e;
+	A4.print_dims();
+	d.print_dims();
+	auto dZ_4 = d.sub(A4);
+	dZ_4.print();
+	
+	// dA_3 = W4' * dZ_4;             % Hidden(ReLU) layer
+	//auto dA_3 = mult(W4.transpose(), dZ_4);
 
-	// g_prime_2 = (Y_hat > 0)
-
-	// delta5 = e5 .* g_prime_2; 
-	// dZ_L = 
 
 
+	// g_prime_3 = (A3 > 0);
+	// dZ_3 = g_prime_3.*dA_3;
+
+	// dA_2 = W3' * dZ_3;            % Pooling layer
+	// e3 = reshape(dA_2, size(Z2)); % De-Vec
 
 	//matlabObj.fm_2_matlab_tensor(Z2);
-	matlabObj.fm_2_matlab_vector(Y_hat);
-
-
-
+	matlabObj.fm_2_matlab_vector(A4);
 
 	// Run the script with the synthetic data
 	//matlabObj.command("	x = [0 1 2 3;	4 5 6 7; 8 9 10 11;	12 13 14 15] ");
