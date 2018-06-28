@@ -68,14 +68,15 @@ g_prime_1 = (A1 > 0);
 dZ_1 = g_prime_1 .* dA_1;          % ReLU layer
 
 delta1_x = zeros(size(W1));       % Convolutional layer
-for c = 1:20
+for c = 1:2
     x_slice = x(:, :);
-    dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
-    delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
+    %dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
+    dZ_1_not_rotated = dZ_1(:, :, c);
+
+    %delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
+    delta1_x(:, :, c) = conv2(x_slice, dZ_1_not_rotated, 'valid');
 end
-
-
-
+delta1_x
 
 
 

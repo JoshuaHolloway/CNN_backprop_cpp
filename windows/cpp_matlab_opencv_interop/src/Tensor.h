@@ -175,12 +175,43 @@ namespace framework
 			assert(cols == rhs.cols);
 
 			Tensor<T> out(rhs.dim1, rhs.dim2, rhs.dim3, rhs.dim4);
-			for (int i = 0; i != rhs.filters; ++i)
-				for (int j = 0; j != rhs.channels; ++j)
-					for (int k = 0; k != rhs.rows; ++k)
-						for (int l = 0; l != rhs.cols; ++l)
+			for (int i = 0; i != rhs.dim1; ++i)
+				for (int j = 0; j != rhs.dim2; ++j)
+					for (int k = 0; k != rhs.dim3; ++k)
+						for (int l = 0; l != rhs.dim4; ++l)
 							out.set(i, j, k, l, at(i, j, k, l) - rhs.at(i, j, k, l));
 			return out;
+		}
+
+		// non-mutator
+		Tensor<T> add(Tensor<T> rhs)
+		{
+			assert(filters == rhs.filters);
+			assert(channels == rhs.channels);
+			assert(rows == rhs.rows);
+			assert(cols == rhs.cols);
+
+			Tensor<T> out(rhs.dim1, rhs.dim2, rhs.dim3, rhs.dim4);
+			for (int i = 0; i != rhs.dim1; ++i)       
+				for (int j = 0; j != rhs.dim2; ++j)     
+					for (int k = 0; k != rhs.dim3; ++k)   
+						for (int l = 0; l != rhs.dim4; ++l) 
+							out.set(i, j, k, l, at(i, j, k, l) + rhs.at(i, j, k, l));
+			return out;
+		}
+
+		// mutator
+		void add(Tensor<T> rhs)
+		{
+			assert(filters == rhs.filters);
+			assert(channels == rhs.channels);
+			assert(rows == rhs.rows);
+			assert(cols == rhs.cols);
+			for (int i = 0; i != rhs.dim1; ++i)
+				for (int j = 0; j != rhs.dim2; ++j)
+					for (int k = 0; k != rhs.dim3; ++k)
+						for (int l = 0; l != rhs.dim4; ++l)
+							set(i, j, k, l, at(i, j, k, l) + rhs.at(i, j, k, l));
 		}
 
 
