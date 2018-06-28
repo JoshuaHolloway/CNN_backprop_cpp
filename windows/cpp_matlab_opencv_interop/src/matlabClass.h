@@ -6,8 +6,10 @@
 #include "engine.h"  // MATLAB Engine Header File required for building in Visual Studio 
 #include "mex.h"
 #include "FeatureMap.h"
+#include "Filter.h"
 using std::string;
 using framework::FeatureMap;
+//using framework::Filter;
 
 class matlabClass
 {
@@ -105,6 +107,27 @@ public:
 	}
 
 
+	// 4D data stored in 1D array passed into 3D matrix in MATLAB
+	// NOTE: this will always be a 3D feature map stored as a s 4D tensor
+	void pass_4D_into_matlab(const double* data, const int dim1, const int dim2, const int dim3, const int dim4)
+	{
+		//3rd dim is (i,:,:) in C++, yet (:,:,i) in MATLAB
+		//mxCreateNumericArray(mwSize ndim, const mwSize *dims,
+		//	mxClassID classid, mxComplexity ComplexFlag);
+		const mwSize ndim = 3;
+		const mwSize dims[ndim] = { dim3, dim4, dim2 }; // Ignore the 1st dimension (see note above)
+		mx_Arr = mxCreateNumericArray(ndim, dims, mxDOUBLE_CLASS, mxREAL);
+
+		// Copy tensor data into an mxArray inside C++ environment
+		memcpy(mxGetPr(mx_Arr), data, dim1 * dim2 * dim3 * sizeof(double));
+
+		/// C++ -> MATLAB
+		// Put variable into MATLAB workstpace
+		engPutVariable(ep, "data_from_cpp", mx_Arr);
+	}
+
+	
+
 	void getAudioFromMatlab()
 	{
 		// Read in audio file and play sound:
@@ -142,11 +165,25 @@ public:
 			cppValDblPtrTran[2] << " " << cppValDblPtrTran[3] << std::endl << std::endl;
 	}
 
-	template <typename T>
-	void fm_2_matlab_tensor(FeatureMap<T> fm)
+	//template <typename T>
+	//void fm_2_matlab_tensor(FeatureMap<T> fm)
+	//{
+	//	// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
+	//	pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
+
+	//	// Execute the testbench script
+	//	command("josh()");
+
+	//	// Compute frobenius norm between MATLAB and C++
+	//	return_scalar_from_matlab("error");
+	//}
+
+
+	void tensor_2_matlab(framework::Filter<double> tensor)
 	{
 		// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
-		pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
+		//pass_3D_into_matlab(&fm.transpose()[0], fm.channels, fm.rows, fm.cols);
+		pass_4D_into_matlab(&tensor.transpose()[0], tensor.filters, tensor.channels, tensor.rows, tensor.cols);
 
 		// Execute the testbench script
 		command("josh()");
@@ -155,17 +192,17 @@ public:
 		return_scalar_from_matlab("error");
 	}
 
-	template <typename T>
-	void fm_2_matlab_vector(FeatureMap<T> vect)
-	{
-		// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
-		pass_2D_into_matlab(&vect[0], vect.rows, vect.cols); // column-vector => cols=1
+	//template <typename T>
+	//void fm_2_matlab_vector(FeatureMap<T> vect)
+	//{
+	//	// Transpose each channels matrix and send to matlab to store from (i,:,:) -> (:,:,i)
+	//	pass_2D_into_matlab(&vect[0], vect.rows, vect.cols); // column-vector => cols=1
 
-		// Execute the testbench script
-		command("josh()");
+	//	// Execute the testbench script
+	//	command("josh()");
 
-		// Compute frobenius norm between MATLAB and C++
-		return_scalar_from_matlab("error");
-	}
+	//	// Compute frobenius norm between MATLAB and C++
+	//	return_scalar_from_matlab("error");
+	//}
 };
 //=============================================================================

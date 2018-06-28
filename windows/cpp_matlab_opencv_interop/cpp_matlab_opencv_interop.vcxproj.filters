@@ -35,5 +35,8 @@
     <ClInclude Include="src\matlabClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Tensor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

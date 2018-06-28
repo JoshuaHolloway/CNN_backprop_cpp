@@ -206,8 +206,6 @@ namespace framework
 			return out;
 		}
 
-
-
 	public:
 		size_t channels{ 0 };
 		size_t rows{ 0 };

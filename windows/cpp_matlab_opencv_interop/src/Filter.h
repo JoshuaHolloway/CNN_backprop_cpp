@@ -57,6 +57,20 @@ namespace framework
 		// copy assignment
 		Filter& operator=(const Filter &rhs)
 		{
+			// Create temporary dynamic array to copy into
+			T* temp = new T[a.length];
+
+			// Copy elements from rhs into temporary array
+			for (int i = 0; i != rhs.length; ++i)
+				temp[i] = rhs.data[i];
+
+			// De-allocate data from rhs
+			delete[] data;
+
+			// Copy new data and attributes owned into members owned by lhs
+			data = temp;
+			length = rhs.length;
+			return *this;
 		}
 
 		// TODO
@@ -73,7 +87,7 @@ namespace framework
 		}
 
 		// Easier indexing is achieved with (output_channel, input_channel, row, col)
-		void set(size_t i, size_t j, size_t k, size_t l, float val)
+		inline void set(size_t i, size_t j, size_t k, size_t l, T val)
 		{
 			// i: dim1 - filters
 			// j: dim2 - channels
@@ -82,7 +96,7 @@ namespace framework
 			data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l] = val;
 		}
 
-		float at(size_t i, size_t j, size_t k, size_t l) //(filters, channel, row, col)
+		inline T at(size_t i, size_t j, size_t k, size_t l) //(filters, channel, row, col)
 		{
 			return data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l];
 		}
@@ -107,6 +121,14 @@ namespace framework
 			}
 		}
 
+		void print_dims()
+		{
+			cout << "dim1 = " << dim1 << "\n";
+			cout << "dim2 = " << dim2 << "\n";
+			cout << "dim3 = " << dim3 << "\n";
+			cout << "dim4 = " << dim4 << "\n";
+		}
+
 		void ones()
 		{
 			for (int i = 0; i != length; ++i)
@@ -125,21 +147,72 @@ namespace framework
 				data[i] = static_cast<T>(i);
 		}
 
+		// Direct Linear-indexing access:
+		T& operator[](int i)
+		{
+			return data[i];
+		}
+		const T& operator[](int i) const
+		{
+			return data[i];
+		}
+
+		Filter<T> sub(Filter<T> rhs)
+		{
+			assert(filters == rhs.filters);
+			assert(channels == rhs.channels);
+			assert(rows == rhs.rows);
+			assert(cols == rhs.cols);
+
+			Filter<T> out(rhs.dim1, rhs.dim2, rhs.dim3, rhs.dim4);
+			for (int i = 0; i != rhs.filters; ++i)
+				for (int j = 0; j != rhs.channels; ++j)
+					for (int k = 0; k != rhs.rows; ++k)
+						for (int l = 0; l != rhs.cols; ++l)
+							out.set(i, j, k, l, at(i, j, k, l) - rhs.at(i, j, k, l));
+			return out;
+		}
+
+
+		// non-mutator
+		Filter<T> transpose()
+		{
+			Filter<T> transposed(dim1, dim2, dim3, dim4);
+
+			// Transpose each channel
+			for (int i = 0; i < dim1; ++i) // channels
+				for (int j = 0; j < dim2; ++j) // rows
+					for (int k = 0; k < dim3; ++k) // cols
+						for (int l = 0; l < dim4; ++l)
+							transposed.data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (k * dim4) + l] = data[(i * dim4 * dim3 * dim2) + (j * dim4 * dim3) + (l * dim4) + k];
+			return transposed;
+		}
+
+		// non-mutator
+		Filter<T> vectorize()
+		{
+			Filter<T> out(1, 1, dim1 * dim2 * dim3 * dim4, 1); // Single-channel column-vector
+			for (int i = 0; i != length; ++i)
+				out.set(0, 0, i, 0, data[i]);
+			return out;
+		}
+
+
 		void init()
 		{
 			// TODO - change to xavier initialization
 
 			std::random_device seed;
 			std::mt19937 generator(seed());
-			size_t mean = 0;
-			size_t variance = 1;
+			size_t mean = (T)0;
+			size_t variance = (T)1;
 
 			// Instantiate object of normal_distribution class
-			std::normal_distribution<float> distribution(mean, variance);
+			std::normal_distribution<T> distribution(mean, variance);
 
 			// Sample from normal distribution
 			for (int i = 0; i != length; ++m)
-				data[i] = distribution(generator);
+				data[i] = static_cast<T>(distribution(generator));
 		}
 
 		// Extra dimension beyond that of Tensor

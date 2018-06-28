@@ -177,6 +177,52 @@ FeatureMap<T> conv_valid(FeatureMap<T>& x, Filter<T>& h)
 }
 //-------------------------------------------------------------------------
 template <typename T>
+Filter<T> conv_valid(Filter<T>& x, Filter<T>& h)
+{
+	const size_t y_rows = x.rows - h.rows + 1;
+	const size_t y_cols = x.cols - h.cols + 1;
+
+
+	// 'same' 2D conv with 3D feature maps with implicit matrix slice addition
+	// Zero-padding is also implicit
+	//
+	// Input: One 4D tensor and one 4D tensor
+	// Output: One 4D feature map with everything stored in the 2nd, 3rd, and 4th channels
+	//FeatureMap<T> y(h.filters, y_rows, y_cols);
+	Filter<T> y(1, h.filters, y_rows, y_cols);
+
+	for (int idq = 0; idq < h.filters; ++idq) // out_channels
+	{
+		for (int idy = h.rows / 2; idy < x.rows - h.rows / 2; ++idy) // out_rows
+		{
+			for (int idx = h.cols / 2; idx < x.cols - h.cols / 2; ++idx) // out_cols
+			{
+				float Pvalue = 0.0f;
+				for (int idz = 0; idz < x.channels; ++idz) // input_channels
+				{
+					const size_t M_start_point = idy - h.rows / 2;
+					const size_t N_start_point = idx - h.cols / 2;
+					for (int i = 0; i < h.rows; ++i) // filter_rows
+					{
+						for (int j = 0; j < h.cols; ++j) // filter_cols
+						{
+							if ((M_start_point + i >= 0 && M_start_point + i < x.rows)
+								&& (N_start_point + j >= 0 && N_start_point + j < x.cols))
+							{
+								Pvalue += x.at(0, idz, M_start_point + i, N_start_point + j) * h.at(idq, idz, i, j);
+							}
+						}
+					}
+					y.set(0, idq, idy - 1, idx - 1, Pvalue);
+				}
+			}
+		}
+	}
+
+	return y;
+}
+//-------------------------------------------------------------------------
+template <typename T>
 FeatureMap<T> sigmoid(const FeatureMap<T>& Z)
 {
 	FeatureMap<T> A(Z.channels, Z.rows, Z.cols);
@@ -189,16 +235,44 @@ FeatureMap<T> sigmoid(const FeatureMap<T>& Z)
 }
 //-------------------------------------------------------------------------
 template <typename T>
-FeatureMap<T> relu(FeatureMap<T> Z)
+Filter<T> sigmoid(const Filter <T>& Z)
 {
-	FeatureMap<T> A(Z.channels, Z.rows, Z.cols);
+	Filter<T> A(1, Z.channels, Z.rows, Z.cols);
+
+	// All feature-maps only use the 2nd, 3rd, and 4th dimensions of the tensor
+	for (size_t l = 0; l != Z.channels; ++l)	// dim-1
+		for (size_t m = 0; m != Z.rows; ++m)		// dim-2
+			for (size_t n = 0; n != Z.cols; ++n)	// dim-3
+				A.set(l, m, n, 1.0f / (1 + exp(-Z.at(l, m, n))));
+	return A;
+}
+////-------------------------------------------------------------------------
+//template <typename T>
+//FeatureMap<T> relu(FeatureMap<T> Z)
+//{
+//	FeatureMap<T> A(Z.channels, Z.rows, Z.cols);
+//	for (size_t l = 0; l != Z.channels; ++l)
+//		for (size_t m = 0; m != Z.rows; ++m)
+//			for (size_t n = 0; n != Z.cols; ++n)
+//			{
+//				T z = Z.at(l, m, n);
+//				T max_val = max(0, z);
+//				A.set(l, m, n, max_val);
+//			}
+//	return A;
+//}
+//-------------------------------------------------------------------------
+template <typename T>
+Filter<T> relu(Filter<T> Z)
+{
+	Filter<T> A(1, Z.channels, Z.rows, Z.cols);
 	for (size_t l = 0; l != Z.channels; ++l)
 		for (size_t m = 0; m != Z.rows; ++m)
 			for (size_t n = 0; n != Z.cols; ++n)
 			{
-				T z = Z.at(l, m, n);
+				T z = Z.at(0, l, m, n);
 				T max_val = max(0, z);
-				A.set(l, m, n, max_val);
+				A.set(0, l, m, n, max_val);
 			}
 	return A;
 }
@@ -275,38 +349,95 @@ FeatureMap<T> ave_pool(FeatureMap<T> x)
 }
 //-------------------------------------------------------
 template <typename T>
-void vec(Matrix<T>& y, FeatureMap<T> x)
+Filter<T> ave_pool(Filter<T> x)
 {
-	//Matrix<T> y(x.rows * x.cols, 1);
-	int count = 0;
-	for (size_t l = 0; l != x.channels; ++l)
-		for (size_t m = 0; m != x.rows; ++m)
-			for (size_t n = 0; n != x.cols; ++n)
-			{
-				y.set(count, 0, x.at(l, m, n));
-				count++;
-			}
-	//return y;
-}
-//---------------------------------------------------
-template <typename T>
-Matrix<T> mult(const Matrix<T>& A, const Matrix<T>& B)
-{
-	assert(A.cols == B.rows);
-	Matrix<T> C(A.rows, B.cols);
-	for (size_t n = 0; n < B.cols; ++n)
-		for (size_t m = 0; m < A.rows; ++m)
+	const size_t H = x.rows;
+	const size_t W = x.cols;
+	const size_t M = x.channels;
+	const size_t K = 2; // downsampling factor
+
+	Filter<T> S(1, x.channels, H / K, W / K); // rows, cols, channels
+
+	for (int m = 0; m < M; ++m)  // channels
+	{
+		for (int h = 0; h < H / K; ++h) // rows
 		{
-			float sum = 0.0f;
-			for (size_t k = 0; k < A.cols; ++k)
-				sum += A.at(m, k) * B.at(k, n);
-			C.set(m, n, sum);
+			for (int w = 0; w < W / K; ++w)
+			{
+				auto temp = (T)0;
+				for (int p = 0; p < K; ++p)
+				{
+					for (int q = 0; q < K; ++q)
+					{
+						temp += x.at(0, m, K*h + p, K*w + q);
+					}
+				}
+				S.set(0, m, h, w, temp / T(K*K));
+			}
 		}
-	return C;
+	}
+
+	return S;
 }
+////-------------------------------------------------------
+//template <typename T>
+//void vec(Matrix<T>& y, FeatureMap<T> x)
+//{
+//	//Matrix<T> y(x.rows * x.cols, 1);
+//	int count = 0;
+//	for (size_t l = 0; l != x.channels; ++l)
+//		for (size_t m = 0; m != x.rows; ++m)
+//			for (size_t n = 0; n != x.cols; ++n)
+//			{
+//				y.set(count, 0, x.at(l, m, n));
+//				count++;
+//			}
+//	//return y;
+//}
+////---------------------------------------------------
+//template <typename T>
+//Matrix<T> mult(const Matrix<T>& A, const Matrix<T>& B)
+//{
+//	assert(A.cols == B.rows);
+//	Matrix<T> C(A.rows, B.cols);
+//	for (size_t n = 0; n < B.cols; ++n)
+//		for (size_t m = 0; m < A.rows; ++m)
+//		{
+//			float sum = 0.0f;
+//			for (size_t k = 0; k < A.cols; ++k)
+//				sum += A.at(m, k) * B.at(k, n);
+//			C.set(m, n, sum);
+//		}
+//	return C;
+//}
+////---------------------------------------------------
+//template <typename T>
+//FeatureMap<T> mult(Matrix<T> A, FeatureMap<T> B)
+//{
+//	// Input: 
+//	// B is 1 x N x 1  column-vector
+//	// A is 1 x M x N  matrix
+//	// Output:
+//	// C is 1 x M x 1  column-vector
+//
+//	assert(A.cols == B.rows);
+//	const size_t M = A.rows;
+//	const size_t N = A.cols;
+//		
+//	FeatureMap<T> C(1, M, 1);
+//	for (size_t n = 0; n < B.cols; ++n) // For vector B, this will run only once
+//		for (size_t m = 0; m < A.rows; ++m)
+//		{
+//			auto sum = (T)0;
+//			for (size_t k = 0; k < A.cols; ++k)
+//				sum += A.at(m, k) * B.at(0, k, n);
+//			C.set(0, m, n, sum);
+//		}
+//	return C;
+//}
 //---------------------------------------------------
 template <typename T>
-FeatureMap<T> mult(Matrix<T> A, FeatureMap<T> B)
+Filter<T> mult_2D(Filter<T> A, Filter<T> B)
 {
 	// Input: 
 	// B is 1 x N x 1  column-vector
@@ -314,20 +445,18 @@ FeatureMap<T> mult(Matrix<T> A, FeatureMap<T> B)
 	// Output:
 	// C is 1 x M x 1  column-vector
 
-
-
 	assert(A.cols == B.rows);
 	const size_t M = A.rows;
 	const size_t N = A.cols;
-		
-	FeatureMap<T> C(1, M, 1);
+
+	Filter<T> C(1, 1, M, 1);
 	for (size_t n = 0; n < B.cols; ++n) // For vector B, this will run only once
 		for (size_t m = 0; m < A.rows; ++m)
 		{
 			auto sum = (T)0;
 			for (size_t k = 0; k < A.cols; ++k)
-				sum += A.at(m, k) * B.at(0, k, n);
-			C.set(0, m, n, sum);
+				sum += A.at(0, 0, m, k) * B.at(0, 0, k, n);
+			C.set(0, 0, m, n, sum);
 		}
 	return C;
 }
@@ -393,6 +522,39 @@ FeatureMap<T> softmax(FeatureMap<T> Z)
 	for (size_t m = 0; m != Z.rows; ++m)
 		for (size_t n = 0; n != Z.cols; ++n)
 			A.set(0, m, n, exp(Z.at(0, m, n) - max_val) / sum);
+
+	return A;
+}
+//---------------------------------------------------
+template <typename T>
+Filter<T> softmax(Filter<T> Z)
+{
+	//function y = Softmax(x)
+	//	ex = exp(x);
+	//	y = ex / sum(ex);
+	//end
+
+	// Find maximum value
+	auto max_val = static_cast<T>(0);
+	for (size_t m = 0; m != Z.rows; ++m)
+		for (size_t n = 0; n != Z.cols; ++n)
+		{
+			auto temp = Z.at(0, 0, m, n);
+			if (temp > max_val)
+				max_val = temp;
+		}
+
+	// reduce
+	T sum = static_cast<T>(0);
+	for (size_t m = 0; m != Z.rows; ++m)
+		for (size_t n = 0; n != Z.cols; ++n)
+			sum += exp(Z.at(0, 0, m, n) - max_val);
+
+	// softmax
+	Filter<T> A(1, 1, Z.rows, Z.cols);
+	for (size_t m = 0; m != Z.rows; ++m)
+		for (size_t n = 0; n != Z.cols; ++n)
+			A.set(0, 0, m, n, exp(Z.at(0, 0, m, n) - max_val) / sum);
 
 	return A;
 }
