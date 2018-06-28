@@ -30,6 +30,20 @@ namespace framework
 				data[i] = 0;
 		}
 
+		Tensor(size_t filters, size_t channels, size_t rows, size_t cols, T* data)
+			: filters{ filters }, channels{ channels },
+			rows{ rows }, cols{ cols },
+			length{ rows * cols * channels * filters },
+			data{ new T[length] }
+		{
+			dim1 = filters;
+			dim2 = channels;
+			dim3 = rows;
+			dim4 = cols;
+			for (int i = 0; i != length; ++i)
+				this->data[i] = data[i];
+		}
+
 		// (3)
 		// copy constructor
 		Tensor(const Tensor& filt)
@@ -47,6 +61,8 @@ namespace framework
 			for (int i = 0; i != length; ++i)
 				data[i] = filt.data[i];
 		}
+
+
 
 		// TODO
 		// (4)

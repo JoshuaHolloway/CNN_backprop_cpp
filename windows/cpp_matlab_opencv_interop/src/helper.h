@@ -653,3 +653,38 @@ void de_conv(Tensor<T> e3, Tensor<T>& dA_1)
 		//dA_1.print();
 	}
 }
+//------------------------------------------
+void display_image(
+	double* buffer,
+	int height,
+	int width,
+	bool color)
+{
+	if (color == true)
+	{
+		cv::Mat output_image(height, width, CV_64FC3, buffer);
+		// Make negative values zero.
+		cv::threshold(output_image,
+			output_image,
+			/*threshold=*/0,
+			/*maxval=*/0,
+			cv::THRESH_TOZERO);
+		cv::normalize(output_image, output_image, 0.0, 255.0, cv::NORM_MINMAX);
+		output_image.convertTo(output_image, CV_8UC3);
+		cv::imshow("Image from display_image()", output_image);
+	}
+	else
+	{
+		cv::Mat output_image(height, width, CV_64FC1, buffer);
+		// Make negative values zero.
+		cv::threshold(output_image,
+			output_image,
+			/*threshold=*/0,
+			/*maxval=*/0,
+			cv::THRESH_TOZERO);
+		cv::normalize(output_image, output_image, 0.0, 255.0, cv::NORM_MINMAX);
+		output_image.convertTo(output_image, CV_8UC1);
+		cv::imshow("Image from display_image()", output_image);
+	}
+	cv::waitKey(0);
+}

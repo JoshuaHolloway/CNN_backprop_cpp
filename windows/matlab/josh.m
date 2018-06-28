@@ -4,6 +4,10 @@ N0 = 1;
 N1 = 2;
 N2 = 4;
 
+Images = loadMNISTImages('t10k-images.idx3-ubyte');
+Images = reshape(Images, 28, 28, []);
+
+
 N = 6
 x = zeros(N,N);
 for i = 1:N
@@ -11,7 +15,7 @@ for i = 1:N
         x(i,j) = (i - 1) * N + j - 1
     end
 end
-x
+x = Images(:,:,1)
 
 
 W1 = ones(3,3,N1)

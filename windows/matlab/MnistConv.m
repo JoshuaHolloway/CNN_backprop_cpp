@@ -89,14 +89,21 @@ for batch = 1:length(blist)
   dW3 = dW3 / bsize;
   dW4 = dW4 / bsize;
   
-  momentum1 = alpha*dW1 + beta*momentum1;
-  W1        = W1 + momentum1;
   
-  momentum5 = alpha*dW3 + beta*momentum5;
-  W3        = W3 + momentum5;
+  %% TODO - turn back on mumentum!!!!
+  
+%   momentum1 = alpha*dW1 + beta*momentum1;
+%   W1        = W1 + momentum1;
+  W1        = W1 + alpha*dW1;
+  
+%   momentum5 = alpha*dW3 + beta*momentum5;
+%   W3        = W3 + momentum5;
+	W3        = W3 + dW3;
    
-  momentumo = alpha*dW4 + beta*momentumo;
-  W4        = W4 + momentumo;  
+%   momentumo = alpha*dW4 + beta*momentumo;
+%   W4        = W4 + momentumo;  
+    W4 = W4 + dW4;
+
 end % loop over batches
 
 end % Function definition

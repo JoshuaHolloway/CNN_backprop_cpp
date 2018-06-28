@@ -7,6 +7,7 @@
 #include "mex.h"
 #include "FeatureMap.h"
 #include "Tensor.h"
+#include "helper.h"
 using std::string;
 using framework::FeatureMap;
 //using framework::Tensor;
@@ -52,8 +53,7 @@ public:
 				arrOut[i*N + j] = arrIn[j*N + i];
 		return arrOut;
 	}
-
-
+	
 	// 2D cv::Mat passed from C++ into MATLAB
 	void passImageIntoMatlab(const cv::Mat& img)
 	{
@@ -72,9 +72,7 @@ public:
 		engEvalString(ep, "figure, imshow(img_from_OpenCV, [],'Border','tight');");
 		delete[] linImgArrDouble;
 	}
-
-
-
+	
 	// 2D data stored in 1D array passed into 2D matrix in MATLAB
 	void pass_2D_into_matlab(const double* data, const int M, const int N)
 	{
@@ -86,8 +84,7 @@ public:
 		// Put variable into MATLAB workstpace
 		engPutVariable(ep, "data_from_cpp", mx_Arr);
 	}
-
-	
+		
 	// 3D data stored in 1D array passed into 3D matrix in MATLAB
 	void pass_3D_into_matlab(const double* data, const int dim1, const int dim2, const int dim3)
 	{
@@ -106,24 +103,24 @@ public:
 		engPutVariable(ep, "data_from_cpp", mx_Arr);
 	}
 
-
-
-
-	
-
 	void getAudioFromMatlab()
 	{
 		// Read in audio file and play sound:
 		engEvalString(ep, "[y,Fs] = audioread('handel.wav');");
 		engEvalString(ep, "sound(y,Fs);");
 	}
-	void return_scalar_from_matlab(string variable)
+
+	double return_scalar_from_matlab(string variable)
 	{
+		cout << "variable = " << variable << "\n";
+
 		// Grab value from workspace
 		mxArray *cppValmxArray = engGetVariable(ep, variable.c_str());															// Pointer to MATLAB variable 
-		const double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
+		double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
 		std::cout << variable << " = " << *cppValDblPtr << std::endl << std::endl;
+		return *cppValDblPtr;
 	}
+
 	void returnVectorFromMatlab()
 	{
 		// Create a row-vector in MATLAB
@@ -133,19 +130,36 @@ public:
 		const double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
 		std::cout << "Vector passed from MATLAB into C++ = " << cppValDblPtr[0] << " " << cppValDblPtr[1] << std::endl << std::endl;
 	}
-	void returnMatrixFromMatlab()
+
+	cv::Mat return_matrix_as_cvMat_from_matlab(string variable)
 	{
-		// Careate a mat in MATLAB
-		const int numRows = 2, numCols = 2;
-		command("matlabVal=[1,2;3,4];");
 
-		mxArray *cppValmxArray = engGetVariable(ep, "matlabVal");															// Pointer to MATLAB variable 
-		const double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
+		mxArray* cppValmxArray = engGetVariable(ep, variable.c_str());															// Pointer to MATLAB variable 
+		double* cppValDblPtr = static_cast<double*>(mxGetData(cppValmxArray));	// Pointer to C variable
 
-		const double* cppValDblPtrTran = transposeLin(cppValDblPtr, numRows, numCols);
-		std::cout << "Vector passed from MATLAB into C++ = " <<
-			cppValDblPtrTran[0] << " " << cppValDblPtrTran[1] << " " <<
-			cppValDblPtrTran[2] << " " << cppValDblPtrTran[3] << std::endl << std::endl;
+		// Get dimensions from MATLAB
+		double rows = return_scalar_from_matlab("rows");
+		double cols = return_scalar_from_matlab("cols");
+		
+		cppValDblPtr = transposeLin(cppValDblPtr, (int)cols, (int)rows);
+
+		cout << "rows = " << rows << "\n";
+		cout << "cols = " << cols << "\n";
+
+		//std::cout << "Vector passed from MATLAB into C++:\n";
+		//for (int i = 0; i != (int)rows; ++i)
+		//{
+		//	for (int j = 0; j != (int)cols; ++j)
+		//	{
+		//		//cout << "(i,j) = " << "(" << i << ", " << j << ")    =>    " << cppValDblPtr[i * (int)cols + j] << "\n";
+		//		cout << cppValDblPtr[i * (int)cols + j] << " ";
+		//	}
+		//	cout << "\n";
+		//}
+
+		//display_image(cppValDblPtr, cols, rows, false);
+
+		return cv::Mat{ (int)rows, (int)cols, CV_64FC1, cppValDblPtr };
 	}
 
 	//template <typename T>
@@ -195,8 +209,10 @@ public:
 		// Execute the testbench script
 		command("josh()");
 
-		// Compute frobenius norm between MATLAB and C++
-		return_scalar_from_matlab("error");
+		// TODO - change this back to return the error variable
+
+		//// Compute frobenius norm between MATLAB and C++
+		//return_scalar_from_matlab("error");
 	}
 
 	//template <typename T>

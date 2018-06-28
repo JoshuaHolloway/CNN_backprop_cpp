@@ -29,15 +29,33 @@ void do_main()
 	matlabObj.command("clc, clear, close all;");
 
 
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
-	// TODO - Read im MNIST from MATLAB here
+	// Read im MNIST from MATLAB here
+	matlabObj.command("Images = loadMNISTImages('t10k-images.idx3-ubyte')");
+	matlabObj.command("Images = reshape(Images, 28, 28, [])");
+	matlabObj.command("img = Images(:,:,1)"); // Store 1st MNIST image as matrix
+	matlabObj.command("rows = size(img, 1)"); 
+	matlabObj.command("cols = size(img, 2)"); 
+	
+	//double* x = new double[28 * 28];
+	cv::Mat x = matlabObj.return_matrix_as_cvMat_from_matlab("img");
 
+	//// Make negative values zero.
+	//cv::threshold(x, x, /*threshold=*/0, /*maxval=*/0, cv::THRESH_TOZERO);
+	//cv::normalize(x, x, 0.0, 255.0, cv::NORM_MINMAX);
+	//x.convertTo(x, CV_8UC1);
+	//cv::imshow("Image from display_image()", x);
+	//cv::waitKey(0);
+
+	// Copy opencv image into raw pointer
+	double* xx = new double[x.rows * x.cols];
+	for (int i = 0; i != x.rows; ++i)
+		for (int j = 0; j != x.cols; ++j)
+			xx[i * x.cols + j] = x.at<double>(i, j);
+	display_image(xx, 28, 28, false);
+
+
+	// First step in applying the read in MNIST data from MATLAB:
+	// -Read in single image and pass through 1 itteration of net and test the final updated weights
 
 	// CNN stuffs
 	using framework::FeatureMap;
@@ -62,8 +80,8 @@ void do_main()
 	//      1x4x4 -> 2x4x4 -> 2x2x2 -> 8x1 ->  4x1  ->  4x1
 	//          2x1x3x3    2x2             4x8      4x4
 
-	// Syntethic image
-	Tensor<double> X(1, 1, row_features, col_features);   X.count();
+	// Instantiate data tensor with the first image from MNIST
+	Tensor<double> X(1, 1, row_features, col_features, xx);
 
 	// Step 1: Read in MNIST in MATLAB stored in X (28 x 28 x 8000)
 	// Step 2.a: Compute Z1 in MATLAB
@@ -220,14 +238,32 @@ void do_main()
 		} // end loop over examples in one batch
 		
 		// TODO:
+		// TODO:
+		// TODO:
 		// Apply momentum
 
-		// TODO:
+
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+		// Did not test below!
+
 		// Update params
-
-	
-
-
+		double alpha = 0.1;
+		dW1.scale(alpha); // Apply learning-rate alpha
+		dW3.scale(alpha); // Apply learning-rate alpha
+		dW4.scale(alpha); // Apply learning-rate alpha
+		W1.accumulate(dW1);
+		W3.accumulate(dW3);
+		W4.accumulate(dW4);
 
 		//matlabObj.tensor_2_matlab(e3);
 
