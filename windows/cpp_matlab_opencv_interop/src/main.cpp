@@ -126,15 +126,15 @@ void do_main()
 			auto dZ_3 = hadamard(g_prime_3, dA_3);
 
 			//	dA_2 = W3' * dZ_3;       
-			auto dA_2 = mult_2D(W3.transpose(), dZ_3);
+			auto dA_2_vector = mult_2D(W3.transpose(), dZ_3);
 			//cout << "dA_2:\n";
 			//dA_2.print();
 
-			//	e3 = reshape(dA_2, size(Z2)); // De-Vec => Matricize
+			//	dA_2_tensor = reshape(dA_2, size(Z2)); // De-Vec => Matricize
 
-			auto e3 = dA_2.tensorize_3D(Z2.channels, Z2.rows, Z2.cols);
-			//cout << "e3:\n";
-			//e3.print();
+			auto dA_2_tensor = dA_2_vector.tensorize_3D(Z2.channels, Z2.rows, Z2.cols);
+			//cout << "dA_2_tensor:\n";
+			//dA_2_tensor.print();
 
 			//dA_1 = zeros(size(A1));
 			Tensor<double> dA_1(A1.filters, A1.channels, A1.rows, A1.cols);
@@ -142,10 +142,10 @@ void do_main()
 
 			// De-convolution
 			//for c = 1:20
-			//	kronek = kron(e3(:, : , c), ones([2 2]));
+			//	kronek = kron(dA_2_tensor(:, : , c), ones([2 2]));
 			//	dA_1(:, : , c) = kronek.*temp(:, : , c);
 			//end
-			de_conv(e3, dA_1);
+			de_conv(dA_2_tensor, dA_1);
 
 			//g_prime_1 = (A1 > 0);
 			auto g_prime_1 = g_prime(A1);
@@ -160,40 +160,34 @@ void do_main()
 
 			//		delta1_x(:, : , c) = conv2(x_slice, dZ_1_rotated, 'valid');
 			//end
+
+	
 			Tensor<double> delta1_x(W1.filters, W1.channels, W1.rows, W1.cols);
 
 			// delta1_x is 2 x 1 x 3 x 3
 
-			for (int channel = 0; channel < 2; ++channel) // TODO -change the number of channels in the 
+			// Accumulate one channel of dW1
+			Tensor<double> dZ_1_slice(1, 1, dZ_1.rows, dZ_1.cols);
+			for (int channel = 19; channel < 20; ++channel) // What is up with the channels? This fails if more than a few iterations
 			{
-				// Remember this is just one slice of the full X with all M examples;
-				//auto x_slice = X;
-
 				// TODO - Implement 180deg rotation of dZ_1
 				// dZ_1 is 1 x 2 x 4 x 4
 
 				// Do 2D conv between x_slice and one channel of dZ_1
-
-				// Copy over channel-slice of dZ_1
-				Tensor<double> dZ_1_slice(1, 1, dZ_1.rows, dZ_1.cols);
-				for (int row = 0; row != dZ_1.rows; ++row)
+				dZ_1_slice.zeros();
+				for (int row = 0; row != dZ_1.rows; ++row) 		// Copy over channel-slice of dZ_1
 					for (int col = 0; col != dZ_1.cols; ++col)
 						dZ_1_slice.set(0, 0, row, col, dZ_1.at(0, channel, row, col));
-
-				auto conv_temp_valid = conv_valid(X, dZ_1_slice);
-
-				// Copy over slice into delta1_x
-				for (int row = 0; row != delta1_x.rows; ++row)
-					for (int col = 0; col != delta1_x.cols; ++col)
-						delta1_x.set(0, channel, row, col, conv_temp_valid.at(0, 0, row, col));
-			} // End loop over channels for delta1_x
-
+				
+				// Pass matrix (row x col) into method to accumulate single channel
+				dW1.accumulate_channel(conv_valid(X, dZ_1_slice), channel);
+			} // End loop over channels for dW1
 
 			// Accumulate gradients:
 			//dW1 = dW1 + delta1_x;
 			//dW3 = dW3 + dZ_3 * A2';    
 			//dW4 = dW4 + dZ_4 * A3';
-			dW1.accumulate(delta1_x);
+			//dW1.accumulate(delta1_x);
 			dW3.accumulate(mult_2D(dZ_3, A2.transpose()));
 			dW4.accumulate(mult_2D(dZ_4, A3.transpose()));
 

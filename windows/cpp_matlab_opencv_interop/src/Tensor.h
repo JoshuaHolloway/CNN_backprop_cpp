@@ -62,8 +62,6 @@ namespace framework
 				data[i] = filt.data[i];
 		}
 
-
-
 		// TODO
 		// (4)
 		// move constructor
@@ -212,6 +210,20 @@ namespace framework
 					for (int k = 0; k != rhs.dim3; ++k)
 						for (int l = 0; l != rhs.dim4; ++l)
 							set(i, j, k, l, at(i, j, k, l) + rhs.at(i, j, k, l));
+		}
+
+		// mutator
+		void accumulate_channel(Tensor<T> rhs, size_t channel)
+		{
+			// Accumulate channel of arguement into channel of current object
+
+			//assert(lhs.filters == rhs.filters);
+			//assert(lhs.channels == rhs.channels);
+			//assert(lhs.rows == rhs.rows);
+			//assert(lhs.cols == rhs.cols);
+			for (int row = 0; row != rhs.rows; ++row) // Copy over slice into delta1_x
+				for (int col = 0; col != rhs.cols; ++col)
+					set(0, channel, row, col, at(0, channel, row, col) + rhs.at(0, 0, row, col));
 		}
 
 

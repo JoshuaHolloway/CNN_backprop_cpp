@@ -53,31 +53,26 @@ for batch = 1:length(blist)
     dZ_3 = g_prime_3 .* dA_3;
 
     % Layer 2
-    dA_2     = W3' * dZ_3;            % Pooling layer
-    e3     = reshape(dA_2, size(Z2));
+    dA_2_vector   = W3' * dZ_3;                % Pooling layer
+    dA_2_vector_tensor     = reshape(dA_2_vector, size(Z2));
 
     % Layer 1
     dA_1 = zeros(size(A1));           
     temp = ones(size(A1)) / (2*2);
     for c = 1:20
-      dA_1(:, :, c) = kron(e3(:, :, c), ones([2 2])) .* temp(:, :, c);
+      dA_1(:, :, c) = kron(dA_2_vector_tensor(:, :, c), ones([2 2])) .* temp(:, :, c);
     end
     
     g_prime_1 = (A1 > 0);
-    dZ_1 = g_prime_1 .* dA_1;          % ReLU layer
-  
-    delta1_x = zeros(size(W1));       % Convolutional layer
+    dZ_1 = g_prime_1 .* dA_1;          % ReLU layer 
+    
+    % Accumulate gradients
     for c = 1:20
         x_slice = x(:, :);
         dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
-        %dZ_1_not_rotated = dZ_1(:, :, c);
         
-        delta1_x(:, :, c) = conv2(x_slice, dZ_1_rotated, 'valid');
-        %delta1_x(:, :, c) = conv2(x_slice, dZ_1_not_rotated, 'valid');
+        dW1(:, :, c) = dW1(:, :, c) + conv2(x_slice, dZ_1_rotated, 'valid');
     end % loop over channels
-    
-    % Accumulate gradients
-    dW1 = dW1 + delta1_x; 
     dW3 = dW3 + dZ_3 * A2';    
     dW4 = dW4 + dZ_4 * A3';
   end % loop over examples in batch
