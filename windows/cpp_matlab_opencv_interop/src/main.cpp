@@ -4,6 +4,7 @@
 #include "helper.h"
 #include <array>
 using std::array;
+using framework::Tensor;
 //=============================================================================
 //=============================================================================
 string ExePath() {
@@ -34,10 +35,7 @@ void do_main()
 	//matlabObj.command("rows = size(img, 1)"); 
 	//matlabObj.command("cols = size(img, 2)"); 
 
-	// CNN stuffs
-	using framework::FeatureMap;
-	using framework::Tensor;
-	using framework::Matrix;
+
 
 	// MATLAB:
 	static constexpr size_t M = 1;
@@ -70,7 +68,7 @@ void do_main()
 		Tensor<double> dW3(W3.filters, W3.channels, W3.rows, W3.cols);	dW3.zeros();
 		Tensor<double> dW4(W4.filters, W4.channels, W4.rows, W4.cols);	dW4.zeros();
 
-		for (int example = 2; example != examples; ++example)
+		for (int example = 0; example != examples; ++example)
 		{
 			// Read single image example and corresponding label
 			string image_string = "img = Images(:, : ," + std::to_string(example + 1) + ")";
@@ -112,19 +110,7 @@ void do_main()
 			cout << " example = " << example << " and label = " << (int)y.at<double>(0, 0) << "\n";
 			cout << "d:\n";
 			d.print();
-			display_image(image, 28, 28, false);
-
-			// DEBUG: - Set up one hot-encoding for first example from MNIST(7)
-			d.set(0, 0, 0, 0, 0); // 0
-			d.set(0, 0, 1, 0, 0); // 1 
-			d.set(0, 0, 2, 0, 0); // 2
-			d.set(0, 0, 3, 0, 1); // 3
-			d.set(0, 0, 4, 0, 0); // 4
-			d.set(0, 0, 5, 0, 0); // 5
-			d.set(0, 0, 6, 0, 0); // 6
-			d.set(0, 0, 7, 0, 0); // 7
-			d.set(0, 0, 8, 0, 0); // 8
-			d.set(0, 0, 9, 0, 0); // 9
+			//display_image(image, 28, 28, false);
 
 			auto dZ_4 = d.sub(A4);
 
@@ -213,7 +199,10 @@ void do_main()
 
 			// NOTE: only pass in 3D data => don't pass in dW1, it is (20 x 1 x K x K)
 			cout << "Sending data to MATLAB...\n";
+			matlabObj.command("example_index = " + std::to_string(example + 1) );
 			matlabObj.tensor_2_matlab(dW4);
+			display_image(image, 28, 28, false);
+
 
 			delete[] image;
 		} // end loop over examples in one batch

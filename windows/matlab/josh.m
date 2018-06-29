@@ -27,37 +27,41 @@ W4 = ones(10, 100);
 
 % TODO - add loop over batches
 epochs = 1;
-examples = 1;
-for epoch = 1:epochs
+examples = 8000;
+%for epoch = 1:epochs
+% DEBUG: One epoch
+epoch = 1;
     
     % Initialize Gradient with zeros for l-epoch
     dW1 = zeros(size(W1));
     dW3 = zeros(size(W3));
     dW4 = zeros(size(W4));
-    for example = 1:examples
-
+    %% DEBUG 
+    %% DEBUG 
+    %% DEBUG  - change the first index 
+    %% DEBUG  - change the first index 
+    %% DEBUG  - change the first index 
+    %for example = example_index:examples 
+    % DEBUG: Run over only one example:
+    example = example_index
+    
 
         k = example;
         x = Images(:,:,k);
-        figure(1), imshow(x);
-        
-        % Replaced custom conv with built-in conv
-        %y1 = Conv(x, W1)              % 'valid' convb  20x20x20
+ 
         Z1 = Conv(x, W1);
         A1 = ReLU(Z1);
-        Z2 = Pool(A1);                 % ave-pool      10x10x20
-        A2 = reshape(Z2, [], 1);       % vectorize (10x10x20)x1
-        Z3 = W3 * A2;                    % ReLU,             2000
+        Z2 = Pool(A1);                
+        A2 = reshape(Z2, [], 1);      
+        Z3 = W3 * A2;
         A3 = ReLU(Z3);
-        Z4 = W4*A3;                    % Softmax,          10x1
+        Z4 = W4*A3; 
         A4 = Softmax(Z4); % Predictions
 
-        %% WHY IS THIS ENCODING NOT NORMAL ONE-HOT?
-        % e.g. 7 is encoded with a one in the 4th element, 
-        %   not the 7th element(?)
         % One-hot encoding
         d = zeros(10, 1);
-        d(sub2ind(size(d), Labels(k), 1)) = 1;
+        d(sub2ind(size(d), Labels(k) + 1, 1)) = 1; % Changed to have matlab 1-based indexing
+  
 
         % % Cross entropy: dZ2 = D - Y
         dZ_4  = d - A4;
@@ -65,11 +69,9 @@ for epoch = 1:epochs
         g_prime_3 = (A3 > 0);
         dZ_3 = g_prime_3 .* dA_3;
 
-        % Layer 2
         dA_2     = W3' * dZ_3;            % Pooling layer
         e3     = reshape(dA_2, size(Z2));
 
-        % Layer 1
         dA_1 = zeros(size(A1));           
         temp = ones(size(A1)) / (2*2);
 
@@ -82,9 +84,9 @@ for epoch = 1:epochs
         end
 
         g_prime_1 = (A1 > 0);
-        dZ_1 = g_prime_1 .* dA_1;          % ReLU layer
+        dZ_1 = g_prime_1 .* dA_1;
 
-        delta1_x = zeros(size(W1));       % Convolutional layer
+        delta1_x = zeros(size(W1));
         for c = 1:20
             x_slice = x(:, :);
             %dZ_1_rotated = rot90(dZ_1(:, :, c), 2);
@@ -102,23 +104,15 @@ for epoch = 1:epochs
         
         % Test cpp with golden reference here in matlab
         % Don't use with dW1
+        figure(1), imshow(x);
+        label = Labels(k)
         [error] = froben(dW4, data_from_cpp);
-        
-    end % end loop over examples
-        
-end % end loop over batches
+    
+    % DEBUG: Remove this comment
+    %end % end loop over examples
 
-
-
-
-
-
-
-
-
-
-
-            %
+% DEBUG: Remove this comment 
+%end % end loop over batches          %
 % ============================================================
 function [error] = froben(matlab, cpp)
     % Frobenius norm
@@ -139,8 +133,6 @@ function [error] = froben(matlab, cpp)
     end
     error = sqrt(sum)
 end
-
-
 % ============================================================
 function y = Softmax(x)
   ex = exp(x- max(x));
