@@ -8,7 +8,7 @@ Labels = loadMNISTLabels('t10k-labels.idx1-ubyte');
 Labels(Labels == 0) = 10;    % 0 --> 10
 
 %X = Images(:, :, 8001:10000);
-D = Labels(8001:10000);
+% D = Labels(8001:10000); // MOD!!!! Using from first label
 
 % N = 6
 % x = zeros(N,N);
@@ -17,9 +17,7 @@ D = Labels(8001:10000);
 %         x(i,j) = (i - 1) * N + j - 1
 %     end
 % end
-k = 1;
-x = Images(:,:,k);
-figure(1), imshow(x);
+
 
 
 W1 = ones(3, 3, 20);
@@ -39,6 +37,10 @@ for epoch = 1:epochs
     for example = 1:examples
 
 
+        k = example;
+        x = Images(:,:,k);
+        figure(1), imshow(x);
+        
         % Replaced custom conv with built-in conv
         %y1 = Conv(x, W1)              % 'valid' convb  20x20x20
         Z1 = Conv(x, W1);
@@ -50,9 +52,12 @@ for epoch = 1:epochs
         Z4 = W4*A3;                    % Softmax,          10x1
         A4 = Softmax(Z4); % Predictions
 
+        %% WHY IS THIS ENCODING NOT NORMAL ONE-HOT?
+        % e.g. 7 is encoded with a one in the 4th element, 
+        %   not the 7th element(?)
         % One-hot encoding
         d = zeros(10, 1);
-        d(sub2ind(size(d), D(k), 1)) = 1
+        d(sub2ind(size(d), Labels(k), 1)) = 1;
 
         % % Cross entropy: dZ2 = D - Y
         dZ_4  = d - A4;

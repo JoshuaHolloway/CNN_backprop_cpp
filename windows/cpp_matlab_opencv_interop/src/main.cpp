@@ -24,38 +24,15 @@ void do_main()
 	matlabObj.command(current_path); // Move to current directory of generated .exe
 	matlabObj.command("cd ../../../matlab"); // Move to location of .m files
 
-	// Read and display image:																																						
-	// Clear command window
+	// Reset matlab environment
 	matlabObj.command("clc, clear, close all;");
 
-
 	// Read im MNIST from MATLAB here
-	matlabObj.command("Images = loadMNISTImages('t10k-images.idx3-ubyte')");
-	matlabObj.command("Images = reshape(Images, 28, 28, [])");
-	matlabObj.command("img = Images(:,:,1)"); // Store 1st MNIST image as matrix
+	matlabObj.command("load_MNIST_josh()");
+	//matlabObj.command("Images = reshape(Images, 28, 28, [])");
+	//matlabObj.command("img = Images(:,:,1)"); // Store 1st MNIST image as matrix
 	//matlabObj.command("rows = size(img, 1)"); 
 	//matlabObj.command("cols = size(img, 2)"); 
-	
-	//double* x = new double[28 * 28];
-	cv::Mat x = matlabObj.return_matrix_as_cvMat_from_matlab("img");
-
-	//// Make negative values zero.
-	//cv::threshold(x, x, /*threshold=*/0, /*maxval=*/0, cv::THRESH_TOZERO);
-	//cv::normalize(x, x, 0.0, 255.0, cv::NORM_MINMAX);
-	//x.convertTo(x, CV_8UC1);
-	//cv::imshow("Image from display_image()", x);
-	//cv::waitKey(0);
-
-	// Copy opencv image into raw pointer
-	double* xx = new double[x.rows * x.cols];
-	for (int i = 0; i != x.rows; ++i)
-		for (int j = 0; j != x.cols; ++j)
-			xx[i * x.cols + j] = x.at<double>(i, j);
-	//display_image(xx, 28, 28, false);
-
-
-	// First step in applying the read in MNIST data from MATLAB:
-	// -Read in single image and pass through 1 itteration of net and test the final updated weights
 
 	// CNN stuffs
 	using framework::FeatureMap;
@@ -77,8 +54,7 @@ void do_main()
 	// d:  10 x 1     with 1 in  7 position
 
 
-	// Pass in image data into data matrix:
-	Tensor<double> X(1, neurons[0], R[0], C[0], xx);
+
 
 	//// Weights:
 	Tensor<double> W1(neurons[1], neurons[0], K, K);		W1.ones();
@@ -86,7 +62,7 @@ void do_main()
 	Tensor<double> W4(1, 1, neurons[5], neurons[4]);					W4.ones(); // Two outpus
 
 	static constexpr size_t batches = 1;
-	static constexpr size_t examples = 1;
+	static constexpr size_t examples = 8000;
 	for (int batch = 0; batch != batches; ++batch)
 	{
 		// Initialize gradients to zero (done in constructor)
@@ -94,8 +70,32 @@ void do_main()
 		Tensor<double> dW3(W3.filters, W3.channels, W3.rows, W3.cols);	dW3.zeros();
 		Tensor<double> dW4(W4.filters, W4.channels, W4.rows, W4.cols);	dW4.zeros();
 
-		for (int example = 0; example != examples; ++example)
+		for (int example = 2; example != examples; ++example)
 		{
+			// Read single image example and corresponding label
+			string image_string = "img = Images(:, : ," + std::to_string(example + 1) + ")";
+			matlabObj.command(image_string);
+			cout << image_string << "\n";
+
+			image_string = "label = Labels(" + std::to_string(example + 1) + ")";
+			matlabObj.command(image_string);
+			cout << image_string << "\n";
+
+			// Copy single image into x
+			cv::Mat x = matlabObj.return_matrix_as_cvMat_from_matlab("img");
+
+			// Copy single label into y
+			cv::Mat y = matlabObj.return_matrix_as_cvMat_from_matlab("label");
+
+			// Copy opencv image into raw pointer
+			double* image = new double[x.rows * x.cols];
+			for (int i = 0; i != x.rows; ++i)
+				for (int j = 0; j != x.cols; ++j)
+					image[i * x.cols + j] = x.at<double>(i, j);
+			//display_image(image, 28, 28, false);
+
+			Tensor<double> X(1, neurons[0], R[0], C[0], image);
+
 			auto Z1_valid = conv_valid(X, W1);
 			auto A1 = relu(Z1_valid);
 			auto Z2 = ave_pool(A1);
@@ -105,9 +105,14 @@ void do_main()
 			auto Z4 = mult_2D(W4, A3);
 			auto A4 = softmax(Z4);
 
-
-			Tensor<double> d(1, 1, neurons[5], 1);
-
+			// Instantiate 10d-column vector and initialize with zeros, then simply place 1 in label index
+			Tensor<double> d(1, 1, neurons[5], 1); d.zeros(); // redundant
+			d.set(0, 0, (int)y.at<double>(0, 0), 0, 1); // label is stored in (0,0)th element of cv::Mat y.
+			
+			cout << " example = " << example << " and label = " << (int)y.at<double>(0, 0) << "\n";
+			cout << "d:\n";
+			d.print();
+			display_image(image, 28, 28, false);
 
 			// DEBUG: - Set up one hot-encoding for first example from MNIST(7)
 			d.set(0, 0, 0, 0, 0); // 0
@@ -120,7 +125,6 @@ void do_main()
 			d.set(0, 0, 7, 0, 0); // 7
 			d.set(0, 0, 8, 0, 0); // 8
 			d.set(0, 0, 9, 0, 0); // 9
-
 
 			auto dZ_4 = d.sub(A4);
 
@@ -211,6 +215,7 @@ void do_main()
 			cout << "Sending data to MATLAB...\n";
 			matlabObj.tensor_2_matlab(dW4);
 
+			delete[] image;
 		} // end loop over examples in one batch
 		
 		// TODO:
